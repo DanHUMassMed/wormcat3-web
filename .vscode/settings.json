@@ -1,0 +1,15 @@
+{
+    "cSpell.words": [
+        "httpx",
+        "pytest",
+        "Wormcat"
+    ],
+    "python.testing.pytestArgs": [
+        "backend"
+    ],
+    "terminal.integrated.env.osx": {
+        "PYTHONPATH": "/Users/dan/Code/Python/wormcat3-web/backend"
+    },
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

@@ -1,0 +1,5 @@
+wormcat3
+fastapi
+uvicorn
+pytest
+httpx

@@ -1,2 +1,4 @@
 # wormcat3-web
-wormcat3-web
+
+## Test Frontend code
+`npx ava src/test/api/enrichmentAPI.test.mjs`
