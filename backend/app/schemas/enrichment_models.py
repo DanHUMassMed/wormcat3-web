@@ -16,7 +16,6 @@ class EnrichmentRequest(BaseModel):
 class EnrichmentResponse(BaseModel):
     status_code: str = "200"
     message: str = "Success"
-    working_dir_path: str
     run_id: str
     
     

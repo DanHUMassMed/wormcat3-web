@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation } from "react-router-dom";
 
 
 async function read_category_padj_csv(file_nm) {
-  console.log(`read_category_padj_csv file_nm: ${file_nm}`)
   const response = await fetch(file_nm);
   const csvText = await response.text();
 
@@ -20,25 +19,40 @@ async function read_category_padj_csv(file_nm) {
       const num = Number(value);
       entry[key] = isNaN(num) ? value : num;
     });
-    console.log("entry")
-    console.log(entry)
-    console.log("===========================")  
     return entry;
   });
 }
 
+function get_correction_method(dataArray) {
+  // Check if the array is not empty
+  if (!dataArray || dataArray.length === 0) {
+    return 'Adj P-Value'; // Default to FDR if array is empty or null
+  }
+  
+  // Check the first object in the array to see if it has a 'Bonferroni' key
+  const firstItem = dataArray[0];
+  
+  // Check if 'Bonferroni' is a key and is not undefined
+  if (firstItem && 'Bonferroni' in firstItem && firstItem.Bonferroni !== undefined) {
+    return 'Bonferroni';
+  } else {
+    return 'FDR';
+  }
+}
 
-async function create_ui_data(working_dir_path, run_id) {
+async function create_ui_data(run_id) {
+
+  const cat1_apv = await read_category_padj_csv(`/dynamic/wormcat_out/${run_id}/category_1_padj_${run_id}.csv`)
+  const correction_method = get_correction_method(cat1_apv)
 
   const uiData = {
-    dir: 'example_dir',
-    cat1_apv: await read_category_padj_csv(`${working_dir_path}/${run_id}/category_1_padj_${run_id}.csv`),
-    cat2_apv: await read_category_padj_csv(`${working_dir_path}/${run_id}/category_2_padj_${run_id}.csv`),
-    cat3_apv: await read_category_padj_csv(`${working_dir_path}/${run_id}/category_3_padj_${run_id}.csv`),
+    dir: run_id,
+    cat1_apv: cat1_apv,
+    cat2_apv: await read_category_padj_csv(`/dynamic/wormcat_out/${run_id}/category_2_padj_${run_id}.csv`),
+    cat3_apv: await read_category_padj_csv(`/dynamic/wormcat_out/${run_id}/category_3_padj_${run_id}.csv`),
+    correction_method: correction_method
   };
-  console.log("uiData")
-  console.log(uiData)
-  console.log("===========================")
+
   return uiData
 };
 
@@ -46,22 +60,32 @@ const WormCatReport = () => {
   const location = useLocation();
   const data_loc = location.state?.data;
 
-  console.log(`data_loc ${data_loc}`)
   const [uiData, setUiData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState({ key: 'Bonferroni', direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({ key: 'PValue', direction: 'ascending' });
+  const isMountedRef = useRef(true);
 
 
   useEffect(() => {
+    console.log("WormCatReport Component mounted");
+    isMountedRef.current = true;
+
     const fetchData = async () => {
-      if (data_loc?.working_dir_path && data_loc?.run_id) {
-        const result = await create_ui_data(data_loc.working_dir_path, data_loc.run_id);
+      if (data_loc?.run_id) {
+        const result = await create_ui_data(data_loc.run_id);
         console.log(result)
         setUiData(result);
         setLoading(false);
       }
     };
     fetchData();
+
+    // Cleanup function to run when component unmounts
+    return () => {
+      console.log("WormCatReport Component unmounting - setting mounted ref to false");
+      isMountedRef.current = false;
+    };
+    
   }, [data_loc]);
 
   if (loading || !uiData) return <div>Loading...</div>;
@@ -127,8 +151,8 @@ const WormCatReport = () => {
               <th className="px-4 py-2 text-left cursor-pointer" onClick={() => handleSort('PValue')}>
                 P-Value {renderSortIcon('PValue')}
               </th>
-              <th className="px-4 py-2 text-left cursor-pointer" onClick={() => handleSort('Bonferroni')}>
-                Adj P-Value {renderSortIcon('Bonferroni')}
+              <th className="px-4 py-2 text-left cursor-pointer" onClick={() => handleSort(uiData.correction_method)}>
+              {uiData.correction_method} {renderSortIcon(uiData.correction_method)}
               </th>
             </tr>
           </thead>
@@ -139,7 +163,7 @@ const WormCatReport = () => {
                 <td className="px-4 py-2">{line.RGS}</td>
                 <td className="px-4 py-2">{line.AC}</td>
                 <td className="px-4 py-2">{line.PValue}</td>
-                <td className="px-4 py-2">{line.Bonferroni}</td>
+                <td className="px-4 py-2">{line[uiData.correction_method]}</td>
               </tr>
             ))}
           </tbody>
@@ -150,28 +174,18 @@ const WormCatReport = () => {
 
   return (
     <div className="p-8">
-      {/* Google Analytics */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=UA-153057757-1"></script>
-      <script>
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'UA-153057757-1');
-        `}
-      </script>
 
       <h2 className="text-3xl font-bold mb-6">WormCat Report</h2>
 
       <div className="flex flex-col md:flex-row gap-4 mb-8">
         <button
-          onClick={() => window.location.href = `../static/download/${uiData.dir}.zip`}
+          onClick={() => window.location.href = `/dynamic/wormcat_out/${uiData.dir}.zip`}
           className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
         >
           Download Report
         </button>
         <button
-          onClick={() => newPopup(`./sunburst?dir=${uiData.dir}`, uiData.dir)}
+          onClick={() => newPopup(`/dynamic/wormcat_out/${uiData.dir}/sunburst_${uiData.dir}.html`, uiData.dir)}
           className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
         >
           Open Sunburst View
@@ -181,34 +195,58 @@ const WormCatReport = () => {
       {/* Category One */}
       <div className="my-8">
         <h3 className="text-2xl font-semibold mb-4">Category One</h3>
-        <img
-          className="max-w-full h-auto mb-4"
-          src={`../static/dynamic/${uiData.dir}/rgs_fisher_cat1_apv.svg`}
-          alt="Category One"
-        />
-        {renderTable(uiData.cat1_apv)}
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-shrink-0 relative">
+            <div className="overflow-visible transform-origin-left">
+              <img
+                className="w-96 h-auto transition-all duration-300 hover:scale-[2] hover:translate-x-1/2 hover:shadow-lg hover:border-2 hover:border-black hover:z-50 relative z-10 cursor-zoom-in" 
+                src={`/dynamic/wormcat_out/${uiData.dir}/category_1_padj_${uiData.dir}.svg`}
+                alt="Category One"
+              />
+            </div>
+          </div>
+          <div className="flex-grow">
+            {renderTable(uiData.cat1_apv)}
+          </div>
+        </div>
       </div>
 
       {/* Category Two */}
       <div className="my-8">
         <h3 className="text-2xl font-semibold mb-4">Category Two</h3>
-        <img
-          className="max-w-full h-auto mb-4"
-          src={`../static/dynamic/${uiData.dir}/rgs_fisher_cat2_apv.svg`}
-          alt="Category Two"
-        />
-        {renderTable(uiData.cat2_apv)}
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-shrink-0 relative">
+            <div className="overflow-visible transform-origin-left">
+              <img
+                className="w-96 h-auto transition-all duration-300 hover:scale-[2] hover:translate-x-1/2 hover:shadow-lg hover:border-2 hover:border-black hover:z-50 relative z-10 cursor-zoom-in" 
+                src={`/dynamic/wormcat_out/${uiData.dir}/category_2_padj_${uiData.dir}.svg`}
+                alt="Category Two"
+              />
+            </div>
+          </div>
+          <div className="flex-grow">
+            {renderTable(uiData.cat2_apv)}
+          </div>
+        </div>
       </div>
 
       {/* Category Three */}
       <div className="my-8">
         <h3 className="text-2xl font-semibold mb-4">Category Three</h3>
-        <img
-          className="max-w-full h-auto mb-4"
-          src={`../static/dynamic/${uiData.dir}/rgs_fisher_cat3_apv.svg`}
-          alt="Category Three"
-        />
-        {renderTable(uiData.cat3_apv)}
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-shrink-0 relative">
+            <div className="overflow-visible transform-origin-left">
+              <img
+                className="w-96 h-auto transition-all duration-300 hover:scale-[2] hover:translate-x-1/2 hover:shadow-lg hover:border-2 hover:border-black hover:z-50 relative z-10 cursor-zoom-in" 
+                src={`/dynamic/wormcat_out/${uiData.dir}/category_3_padj_${uiData.dir}.svg`}
+                alt="Category Three"
+              />
+            </div>
+          </div>
+          <div className="flex-grow">
+            {renderTable(uiData.cat3_apv)}
+          </div>
+        </div>
       </div>
     </div>
   );

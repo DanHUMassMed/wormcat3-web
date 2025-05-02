@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException
 from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
 from wormcat3 import Wormcat
 from wormcat3.constants import PAdjustMethod
+from wormcat3.file_util import zip_dir
 
 router = APIRouter()
 
@@ -21,9 +22,9 @@ def analyze_and_visualize_enrichment(payload: EnrichmentRequest):
             p_adjust_method = PAdjustMethod.from_str(payload.p_adjust_method),
             p_adjust_threshold = payload.p_adjust_threshold
         )
+        zip_dir(wormcat.working_dir_path)
 
         return EnrichmentResponse(
-            working_dir_path = wormcat_out_path,
             run_id = wormcat.run_number
         )
 
