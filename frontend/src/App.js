@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import WormCatForm from "./components/WormCatForm";
 import WormCatReport from "./components/WormCatReport";
@@ -13,7 +13,6 @@ window.originalConsole = {
   warn: console.warn,
   error: console.error,
 };
-
 
 function formatTimestamp(date) {
   const pad = (n, z = 2) => String(n).padStart(z, '0');
@@ -68,7 +67,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<WormCatForm />} />
-          <Route path="report" element={<WormCatReport />} />
+          <Route path="report" element={<Navigate to="/" />} />
+          <Route path="report/:run_id" element={<WormCatReport />} />
         </Route>
       </Routes>
     </Router>

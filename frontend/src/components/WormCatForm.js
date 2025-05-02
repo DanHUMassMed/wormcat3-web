@@ -55,25 +55,6 @@ export default function WormCatForm() {
   const [validationErrors, setValidationErrors] = useState({});
 
   const isMountedRef = useRef(true);
-  const [navigationData, setNavigationData] = useState(null);
-
-  useEffect(() => {
-    console.log("WormCatForm Component mounted");
-    isMountedRef.current = true;
-
-    // Navigation effect
-    if (navigationData && isMountedRef.current) {
-      console.log("Navigating with data:", navigationData);
-      navigate("/report", { state: { data: navigationData } });
-      setNavigationData(null); // Reset after navigation
-    }
-    
-    // Cleanup function to run when component unmounts
-    return () => {
-      console.log("WormCatForm Component unmounting - setting mounted ref to false");
-      isMountedRef.current = false;
-    };
-  }, [navigationData, navigate]);
 
 
   // Check if a string is a valid gene set
@@ -209,7 +190,7 @@ export default function WormCatForm() {
       // Instead of navigating directly, set the navigation data
       if (isMountedRef.current) {
         console.log("Setting navigation data");
-        setNavigationData(response);
+        navigate(`/report/${response.run_id}`);
       }
     } catch (error) {
       // Handle specific error types

@@ -20,7 +20,7 @@ export const apiRequest = async (method, endpoint, data = null) => {
     if (method === 'get') {
       response = await axios.get(url, config);
     } else if (method === 'post') {
-      response = await axios.post(url, data, config);
+      response = await axios.post(url, data);
     } else if (method === 'put') {
       response = await axios.put(url, data, config);
     } else if (method === 'delete') {
