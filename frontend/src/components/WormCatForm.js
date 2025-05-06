@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { analyze_and_visualize_enrichment } from "../api/enrichmentAPI.mjs";
+import { analyze_and_visualize_enrichment } from "../api/enrichmentAPI.js";
 import FileUploadZone from "./FileUploadZone";
+import axios from "axios";
 
 // Constants
 const ANNOTATION_OPTIONS = [
@@ -100,37 +101,30 @@ export default function WormCatForm() {
     return { valid: true };
   };
 
-  // File upload handlers
-  const handleDrop = (e) => {
+  // File upload handler
+  const handleFileDrop = (e, context) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
-    if (file) {
-      setFileName(file.name);
-      setValidationErrors({ ...validationErrors, geneSet: null });
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setGeneSetText(event.target.result);
-      };
-      reader.readAsText(file);
-    }
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+  
+      if (context === 'geneSet') {
+        setFileName(file.name);
+        setValidationErrors((prev) => ({ ...prev, geneSet: null }));
+        setGeneSetText(text);
+      } else if (context === 'customBackground') {
+        setCustomBackgroundFileName(file.name);
+        setValidationErrors((prev) => ({ ...prev, customBackground: null }));
+        setCustomBackgroundText(text);
+      }
+    };
+    reader.readAsText(file);
   };
-
-  const handleCustomDrop = (e) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      setCustomBackgroundFileName(file.name);
-      setValidationErrors({ ...validationErrors, customBackground: null });
-      
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setCustomBackgroundText(event.target.result);
-      };
-      reader.readAsText(file);
-    }
-  };
-
+  
+  
   // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -168,29 +162,28 @@ export default function WormCatForm() {
     // Start loading
     setLoading(true);
 
+
     // Prepare request payload
     const enrichmentRequest = {
       gene_set: geneSetText.trim().split(/\r?\n/).filter(Boolean),
-      title: analysisTitle || "Untitled Analysis", // Default title if empty
+      title: analysisTitle || "Analysis", // Default title if empty
       email: email,
       annotation_file_name: annotationType,
-      background:
-        statisticalDomain === "custom"
-          ? customBackgroundText.trim().split(/\r?\n/).filter(Boolean)
-          : null,
       p_adjust_method: significanceMethod,
       p_adjust_threshold: parseFloat(significanceThreshold),
     };
 
     try {
       console.log("Calling analyze_and_visualize_enrichment");
-      const response = await analyze_and_visualize_enrichment(enrichmentRequest);
+      const response_data = await analyze_and_visualize_enrichment(enrichmentRequest);
       console.log("Returning from analyze_and_visualize_enrichment");
       
-      // Instead of navigating directly, set the navigation data
-      if (isMountedRef.current) {
+      if (response_data?.run_id) {
         console.log("Setting navigation data");
-        navigate(`/report/${response.run_id}`);
+        navigate(`/report/${response_data.run_id}`);
+      } else {
+        console.error("run_id is missing from response_data");
+        setErrorMessage("Analysis failed: no run ID returned from the server.");
       }
     } catch (error) {
       // Handle specific error types
@@ -306,7 +299,7 @@ export default function WormCatForm() {
                 <FormField label="Custom Background Gene Set">
                   <FileUploadZone 
                     fileName={customBackgroundFileName}
-                    onDrop={handleCustomDrop}
+                    onDrop={(e) => handleFileDrop(e, 'customBackground')}
                     label="Custom Background"
                     id="custom-background-drop"
                   />
@@ -348,7 +341,7 @@ export default function WormCatForm() {
         <FormField label="Regulated Gene Set" required>
           <FileUploadZone 
             fileName={fileName}
-            onDrop={handleDrop}
+            onDrop={(e) => handleFileDrop(e, 'geneSet')}
             label="Gene Set"
             id="gene-set-drop"
           />

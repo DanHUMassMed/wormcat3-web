@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Layout from "./components/Layout";
 import WormCatForm from "./components/WormCatForm";
 import WormCatReport from "./components/WormCatReport";
+import ExcelUploadForm from "./components/ExcelUploadForm";
 
 
 // Keep a log array in memory
@@ -67,6 +68,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<WormCatForm />} />
+          <Route path="upload" element={<ExcelUploadForm />} />
           <Route path="report" element={<Navigate to="/" />} />
           <Route path="report/:run_id" element={<WormCatReport />} />
         </Route>

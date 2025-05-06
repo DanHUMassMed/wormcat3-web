@@ -23,4 +23,6 @@ ensure_conda_env() {
 }
 
 ensure_conda_env wormcat3-web
-npm run start
+#npm run start
+npm run build
+npx serve -s build

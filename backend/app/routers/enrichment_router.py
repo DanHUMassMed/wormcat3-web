@@ -1,32 +1,53 @@
 import os
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException,Request
+from pydantic import ValidationError
 from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
 from wormcat3 import Wormcat
 from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
+from typing import Any
+import json
 
 router = APIRouter()
 
-
 @router.post("/analyze_and_visualize_enrichment", response_model=EnrichmentResponse)
-def analyze_and_visualize_enrichment(payload: EnrichmentRequest):
+async def analyze_and_visualize_enrichment(request: Request):
+    try:
+        raw_body = await request.body()
+        parsed_body = json.loads(raw_body)
+        print(parsed_body)
+        enrichment_request = EnrichmentRequest(**parsed_body)
+    except json.JSONDecodeError as e:
+        return EnrichmentResponse(
+            status_code="400",
+            message=f"Invalid JSON format: {str(e)}",
+            run_id=""
+        )
+    except ValidationError as e:
+        error_messages = "; ".join(
+            [f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in e.errors()]
+        )
+        return EnrichmentResponse(
+            status_code="422",
+            message=f"Validation error: {error_messages}",
+            run_id=""
+        )
+    
     try:
         wormcat_out_path = os.environ.get("WORMCAT_OUT_PATH")
         wormcat = Wormcat(working_dir_path=wormcat_out_path, 
-                          title=payload.title, 
-                          annotation_file_name=payload.annotation_file_name, 
-                          email=payload.email)
+                          title=enrichment_request.title, 
+                          annotation_file_name=enrichment_request.annotation_file_name, 
+                          email=enrichment_request.email)
         wormcat.analyze_and_visualize_enrichment(
-            gene_set_input = payload.gene_set,
-            background_input = payload.background,
-            p_adjust_method = PAdjustMethod.from_str(payload.p_adjust_method),
-            p_adjust_threshold = payload.p_adjust_threshold
+            gene_set_input = enrichment_request.gene_set,
+            background_input = enrichment_request.background,
+            p_adjust_method = PAdjustMethod.from_str(enrichment_request.p_adjust_method),
+            p_adjust_threshold = enrichment_request.p_adjust_threshold
         )
         zip_dir(wormcat.working_dir_path)
-
-        return EnrichmentResponse(
-            run_id = wormcat.run_number
-        )
+        ret_val = EnrichmentResponse(run_id = wormcat.run_number)
+        return ret_val
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
