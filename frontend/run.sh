@@ -23,6 +23,10 @@ ensure_conda_env() {
 }
 
 ensure_conda_env wormcat3-web
-#npm run start
-npm run build
-npx serve -s build
+
+if [ "$1" == "build" ]; then
+    npm run build
+    npx serve -s build
+else
+    npm run start
+fi
