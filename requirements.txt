@@ -1,6 +1,6 @@
 wormcat3
 fastapi
-uvicorn
+uvicorn[standard]
 pytest
 httpx
 celery

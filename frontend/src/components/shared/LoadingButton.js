@@ -1,12 +1,15 @@
-import React from "react";
 
-export const LoadingButton = ({ loading, text, loadingText = "Processing..." }) => {
+import React, { useState } from "react";
+
+// LoadingButton component
+export const LoadingButton = ({ loading, text, loadingText = "Processing...", onClick, disabled = false }) => {
   return (
     <button
-      type="submit"
-      disabled={loading}
+      type="button" // Changed from "submit" to allow multiple buttons
+      disabled={loading || disabled}
+      onClick={onClick}
       className={`w-full p-3 text-white font-bold rounded-lg transition-colors ${
-        loading 
+        loading || disabled
           ? "bg-gray-500 cursor-not-allowed" 
           : "bg-blue-600 hover:bg-blue-700"
       }`}

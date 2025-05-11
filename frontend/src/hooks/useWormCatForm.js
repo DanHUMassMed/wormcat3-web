@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { analyze_and_visualize_enrichment } from "../api/enrichmentAPI";
+import { analyze_and_visualize_enrichment, perform_gsea_analysis } from "../api/enrichmentAPI";
 import { useFormValidation } from "./useFormValidation";
 import { useFileUpload } from "./useFileUpload";
 import { ANNOTATION_OPTIONS, SIGNIFICANCE_METHODS, DOMAIN_SCOPES } from "../components/constants";
@@ -17,6 +17,8 @@ export const useWormCatForm = () => {
   const [analysisTitle, setAnalysisTitle] = useState("");
   const [statisticalDomain, setStatisticalDomain] = useState(DOMAIN_SCOPES[0].value);
   const [customBackgroundText, setCustomBackgroundText] = useState("");
+  const [uploadId, setUploadId] = useState("");
+
   
   // Single form specific state
   const [geneSetText, setGeneSetText] = useState("");
@@ -26,7 +28,7 @@ export const useWormCatForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
   
   // File upload handling
-  const fileUpload = useFileUpload();
+  const fileUpload = useFileUpload(setUploadId);
 
   // Form validation logic
   const validateForm = () => {
@@ -100,11 +102,48 @@ export const useWormCatForm = () => {
     }
   };
 
-    // Create a wrapper function to prevent default form submission
-  const onSubmit = (e) => {
-    e.preventDefault();
-    handleSubmit();
+  const handleGSEASubmit = async () => {
+    console.log("in handleGSEASubmit")
+    validation.resetValidationErrors();
+    // Validate email
+    if (!email) {
+      validation.setValidationError("email", "Email is required");
+      return;
+    }
+    
+    setLoading(true);
+    setErrorMessage("");
+    
+    // Prepare request payload
+    const gseaRequest = {
+      gene_set: uploadId,
+      title: analysisTitle || "GSEA", // Default title if empty
+      email: email,
+      annotation_file_name: annotationType,
+    };
+
+    try {
+      const response_data = await perform_gsea_analysis(gseaRequest);
+      
+      if (response_data?.run_id) {
+        navigate(`/gsea_report/${response_data.run_id}`);
+      } else {
+        setErrorMessage("Analysis failed: no run ID returned from the server.");
+      }
+    } catch (error) {
+      // Handle specific error types
+      if (error.name === "AbortError") {
+        setErrorMessage("Request timed out. Please try again later.");
+      } else {
+        setErrorMessage(`Error: ${error.message || "Failed to process analysis"}`);
+      }
+      console.error("Analysis error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+
 
   return {
     // Form state
@@ -122,6 +161,8 @@ export const useWormCatForm = () => {
     setStatisticalDomain,
     customBackgroundText,
     setCustomBackgroundText,
+    uploadId,
+    setUploadId,
     
     // Single form state
     geneSetText,
@@ -138,6 +179,7 @@ export const useWormCatForm = () => {
     validation,
     
     // Form submission
-    onSubmit
+    handleSubmit,  
+    handleGSEASubmit
   };
 };

@@ -1,8 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import WormCatForm from "./components/WormCatForm";
+import WormCatBatchForm from "./components/WormCatBatchForm";
+import WormCatGSEAForm from "./components/WormCatGSEAForm";
 import WormCatReport from "./components/WormCatReport";
-import ExcelUploadForm from "./components/ExcelUploadForm";
+import WormCatGSEAReport from "./components/WormCatGSEAReport";
+import TaskRunner from "./components/TaskRunner";
 
 
 // Keep a log array in memory
@@ -67,10 +70,13 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route path="test" element={<TaskRunner />} />
           <Route index element={<WormCatForm />} />
-          <Route path="upload" element={<ExcelUploadForm />} />
+          <Route path="batch" element={<WormCatBatchForm />} />
+          <Route path="gsea" element={<WormCatGSEAForm />} />
           <Route path="report" element={<Navigate to="/" />} />
           <Route path="report/:run_id" element={<WormCatReport />} />
+          <Route path="gsea_report/:run_id" element={<WormCatGSEAReport />} />
         </Route>
       </Routes>
     </Router>

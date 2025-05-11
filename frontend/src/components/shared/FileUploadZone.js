@@ -1,8 +1,9 @@
 import React, { useState, useRef } from "react";
 
-// File Upload Component with improved drag handling and click-to-browse functionality
-const FileUploadZone = ({ fileName, onDrop, label, id }) => {
+// File Upload Component with improved drag handling, click-to-browse functionality, and error display
+const FileUploadZone = ({ fileName, onDrop, label, id, errorMessage }) => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [error, setError] = useState(errorMessage || null);
   const dropzoneRef = useRef(null);
   const fileInputRef = useRef(null);
   const dragCounter = useRef(0);
@@ -30,19 +31,32 @@ const FileUploadZone = ({ fileName, onDrop, label, id }) => {
     e.stopPropagation();
   };
   
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingOver(false);
     dragCounter.current = 0;
     
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      onDrop(e);
-      e.dataTransfer.clearData();
+      try {
+        setError(null); // Clear any previous errors
+        const result = await onDrop(e);
+        
+        // Process the specific return format from onDrop
+        if (result && typeof result === 'object') {
+          if (!result.valid && result.message) {
+            setError(result.message);
+          }
+        }
+      } catch (err) {
+        setError(err.message || "Failed to upload file");
+      } finally {
+        e.dataTransfer.clearData();
+      }
     }
   };
   
-  const handleFileInputChange = (e) => {
+  const handleFileInputChange = async (e) => {
     if (e.target.files && e.target.files.length > 0) {
       // Create a synthetic drop event to use the same handler
       const event = {
@@ -52,9 +66,27 @@ const FileUploadZone = ({ fileName, onDrop, label, id }) => {
           clearData: () => {}
         }
       };
-      onDrop(event);
+      
+      try {
+        setError(null); // Clear any previous errors
+        const result = await onDrop(event);
+        
+        // Process the specific return format from onDrop
+        if (result && typeof result === 'object') {
+          if (!result.valid && result.message) {
+            setError(result.message);
+          }
+        }
+      } catch (err) {
+        setError(err.message || "Failed to upload file");
+      }
     }
   };
+
+  // Update error state if errorMessage prop changes
+  React.useEffect(() => {
+    setError(errorMessage || null);
+  }, [errorMessage]);
 
   return (
     <div className="mb-4">
@@ -73,13 +105,27 @@ const FileUploadZone = ({ fileName, onDrop, label, id }) => {
         onDrop={handleDrop}
         onClick={() => fileInputRef.current && fileInputRef.current.click()}
         className={`border-2 border-dashed rounded p-6 text-center cursor-pointer transition-all duration-200 ${
-          isDraggingOver 
-            ? "border-blue-500 bg-blue-50" 
-            : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
+          error 
+            ? "border-red-500 bg-red-50" 
+            : isDraggingOver 
+              ? "border-blue-500 bg-blue-50" 
+              : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
         }`}
         id={id}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : undefined}
       >
-        {fileName ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center">
+            <svg className="w-8 h-8 text-red-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <p className="text-red-600 font-medium">{error}</p>
+            <p className="text-sm text-red-400 mt-1">
+              Click to try again
+            </p>
+          </div>
+        ) : fileName ? (
           <div className="flex flex-col items-center justify-center">
             <svg className="w-8 h-8 text-green-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
@@ -100,6 +146,11 @@ const FileUploadZone = ({ fileName, onDrop, label, id }) => {
           </div>
         )}
       </div>
+      {error && (
+        <div id={`${id}-error`} className="mt-1 text-sm text-red-600" role="alert">
+          {error}
+        </div>
+      )}
     </div>
   );
 };

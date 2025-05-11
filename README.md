@@ -2,3 +2,5 @@
 
 ## Test Frontend code
 `npx ava src/test/api/enrichmentAPI.test.mjs`
+
+`lsof -i :8000`

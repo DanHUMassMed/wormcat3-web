@@ -1,16 +1,15 @@
 from pydantic import BaseModel
 from typing import List, Optional, Union
-from wormcat3.constants import PAdjustMethod
-
+from wormcat3.constants import PAdjustMethod, DEFAULT_ANNOTATION_FILE_NAME, DEFAULT_TITLE, DEFAULT_P_ADJUST_THRESHOLD
 
 class EnrichmentRequest(BaseModel):
     gene_set: Union[str, List[str]]
-    title: str = "Analysis"
+    title: str = DEFAULT_TITLE
     email: str = None
-    annotation_file_name: str = "whole_genome_v2_nov-11-2021.csv"
+    annotation_file_name: str = DEFAULT_ANNOTATION_FILE_NAME
     background: Optional[Union[str, List[str]]] = None
     p_adjust_method: str = PAdjustMethod.BONFERRONI.value
-    p_adjust_threshold: float = 0.05
+    p_adjust_threshold: float = DEFAULT_P_ADJUST_THRESHOLD
 
 
 class EnrichmentResponse(BaseModel):

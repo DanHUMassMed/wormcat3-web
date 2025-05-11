@@ -4,7 +4,8 @@ from app import constants
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import debugpy
-from app.routers import enrichment_router, batch_router
+from app.routers import enrichment_router, batch_router, gsea_router
+from app.tasks import celery
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "FALSE")
 if ACTIVATE_DEBUG=="TRUE":
@@ -33,5 +34,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
 app.include_router(enrichment_router.router, prefix="/wormcat3", tags=["Enrichment"])
 app.include_router(batch_router.router, prefix="/wormcat3", tags=["Batch"])
+app.include_router(gsea_router.router, prefix="/wormcat3", tags=["GSEA"])

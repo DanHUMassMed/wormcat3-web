@@ -37,7 +37,7 @@ const Header = () => {
             <a href="/batch" className="text-gray-700 hover:text-blue-600">
               Batch
             </a>
-            <a href="/batch" className="text-gray-700 hover:text-blue-600">
+            <a href="/gsea" className="text-gray-700 hover:text-blue-600">
               GSEA
             </a>
             {isFormPage && (
