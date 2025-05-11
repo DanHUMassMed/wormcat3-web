@@ -8,11 +8,15 @@ from wormcat3.file_util import zip_dir
 from typing import Any
 import json
 from pathlib import Path
+from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path
 
 router = APIRouter()
 
 @router.post("/perform_gsea_analysis", response_model=GSEAResponse)
 async def perform_gsea_analysis(request: Request):
+    # Note: Automatically parsing the request into a pydantic model 
+    # produces obscure and difficult to interpret errors on failure
+    # Manually parsing is far more transparent and easier to debug
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
@@ -35,14 +39,12 @@ async def perform_gsea_analysis(request: Request):
         )
     
     try:
-        wormcat_out_path = os.environ.get("WORMCAT_OUT_PATH")
-        upload_dir = (Path(wormcat_out_path) / "../uploads").resolve()
-        wormcat = Wormcat(working_dir_path=wormcat_out_path, 
+        wormcat = Wormcat(working_dir_path=WORMCAT_OUT_PATH, 
                           title=gsea_request.title, 
                           annotation_file_name=gsea_request.annotation_file_name, 
                           email=gsea_request.email)
         
-        input_file_path=f"{upload_dir}/{gsea_request.gene_set}"
+        input_file_path=f"{get_upload_dir_path()}/{gsea_request.gene_set}"
         wormcat.perform_gsea_analysis(input_file_path)
         zip_dir(wormcat.working_dir_path)
         ret_val = GSEAResponse(run_id = wormcat.run_number)

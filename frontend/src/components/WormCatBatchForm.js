@@ -126,15 +126,46 @@ export default function WormCatBatchForm() {
     };
   }, [taskId]);
 
-  const handleSubmitAndEmail = () => {
+  const handleSubmitAndEmail = async () => {
     setIsSubmitting(true);
-    setSubmissionType("email");
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Form submitted and email sent:");
-      setIsSubmitting(false);
-    }, 2000);
+    // Prepare request payload
+    const enrichmentRequest = {
+      gene_set: uploadId,
+      title: analysisTitle || "Analysis", // Default title if empty
+      email: email,
+      annotation_file_name: annotationType,
+      p_adjust_method: significanceMethod,
+      p_adjust_threshold: parseFloat(significanceThreshold),
+    };
+
+    // Add custom background if selected
+    if (statisticalDomain === "custom") {
+      enrichmentRequest.background_genes = customBackgroundText.trim().split(/\r?\n/).filter(Boolean);
+    }
+
+    try {
+      // Submit to API
+      const response = await fetch('http://localhost:8000/wormcat3/run-and-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(enrichmentRequest),
+      });
+      
+      if (response.ok) {
+        setSubmissionType("email");
+      }else{
+        throw new Error(`Server responded with ${response.status}`);
+      }
+
+    } catch (error) {
+      console.error("Error starting task:", error);
+      setTaskStatus('Failed');
+      setIsRunning(false);
+    }
+
   };
   
   const handleRunAndWait = async () => {
@@ -165,7 +196,7 @@ export default function WormCatBatchForm() {
       };
       
       // Submit to API
-      const response = await fetch('http://localhost:8000/wormcat3/start-task', {
+      const response = await fetch('http://localhost:8000/wormcat3/run-and-wait', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

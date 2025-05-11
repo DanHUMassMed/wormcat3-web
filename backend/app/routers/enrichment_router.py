@@ -7,11 +7,15 @@ from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
 from typing import Any
 import json
+from app.utils.file_utility import WORMCAT_OUT_PATH
 
 router = APIRouter()
 
 @router.post("/analyze_and_visualize_enrichment", response_model=EnrichmentResponse)
 async def analyze_and_visualize_enrichment(request: Request):
+    # Note: Automatically parsing the request into a pydantic model 
+    # produces obscure and difficult to interpret errors on failure
+    # Manually parsing is far more transparent and easier to debug
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
@@ -34,8 +38,7 @@ async def analyze_and_visualize_enrichment(request: Request):
         )
     
     try:
-        wormcat_out_path = os.environ.get("WORMCAT_OUT_PATH")
-        wormcat = Wormcat(working_dir_path=wormcat_out_path, 
+        wormcat = Wormcat(working_dir_path=WORMCAT_OUT_PATH, 
                           title=enrichment_request.title, 
                           annotation_file_name=enrichment_request.annotation_file_name, 
                           email=enrichment_request.email)

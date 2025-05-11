@@ -10,7 +10,7 @@ export const useWormCatForm = () => {
   const validation = useFormValidation();
   
   // Basic form state
-  const [email, setEmail] = useState("dan@none.com");
+  const [email, setEmail] = useState("daniel.higgins@umassmed.edu");
   const [annotationType, setAnnotationType] = useState(ANNOTATION_OPTIONS[0].value);
   const [significanceMethod, setSignificanceMethod] = useState(SIGNIFICANCE_METHODS[0].value);
   const [significanceThreshold, setSignificanceThreshold] = useState("0.05");

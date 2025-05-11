@@ -6,3 +6,4 @@ httpx
 celery
 redis
 python-multipart
+openpyxl
