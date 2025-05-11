@@ -14,7 +14,7 @@ __pycache__/
 freeze.txt
 **/.env
 
-redis/redis-stable/
+**/redis/redis-stable/
 frontend/public/dynamic/
 frontend/build/
 **/test_output/
