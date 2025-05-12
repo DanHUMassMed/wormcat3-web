@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import FileUploadZone from "./shared/FileUploadZone.js";
 import { FormField } from "./shared/FormField";
@@ -56,6 +56,7 @@ export default function WormCatBatchForm() {
   const [validationMessage, setValidationMessage] = useState('');
   const [taskId, setTaskId] = useState(null);
   const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
   const [taskStatus, setTaskStatus] = useState('Idle');
   const [resultUrl, setResultUrl] = useState(null);
   const [websocket, setWebsocket] = useState(null);
@@ -93,6 +94,9 @@ export default function WormCatBatchForm() {
       
       if (data.progress !== undefined) {
         setProgress(data.progress);
+      }
+      if (data.message !== undefined) {
+        setProgressMessage(data.message);
       }
       
       if (data.state) {
@@ -132,7 +136,7 @@ export default function WormCatBatchForm() {
     // Prepare request payload
     const enrichmentRequest = {
       gene_set: uploadId,
-      title: analysisTitle || "Analysis", // Default title if empty
+      title: analysisTitle || 'Analysis',
       email: email,
       annotation_file_name: annotationType,
       p_adjust_method: significanceMethod,
@@ -156,13 +160,17 @@ export default function WormCatBatchForm() {
       
       if (response.ok) {
         setSubmissionType("email");
+        setTaskStatus('COMPLETED');
       }else{
+        setTaskStatus('Failed');
         throw new Error(`Server responded with ${response.status}`);
       }
+      setIsSubmitting(false);
 
     } catch (error) {
       console.error("Error starting task:", error);
       setTaskStatus('Failed');
+      setIsSubmitting(false);
       setIsRunning(false);
     }
 
@@ -183,17 +191,20 @@ export default function WormCatBatchForm() {
       //   return;
       // }
       
-      // Prepare form data
-      const formData = {
-        email,
-        annotationType,
-        significanceMethod,
-        significanceThreshold,
-        analysisTitle,
-        statisticalDomain,
-        customBackgroundText: statisticalDomain === "custom" ? customBackgroundText : null,
-        uploadId
-      };
+    // Prepare request payload
+    const enrichmentRequest = {
+      gene_set: uploadId,
+      title: analysisTitle || 'Analysis',
+      email: email,
+      annotation_file_name: annotationType,
+      p_adjust_method: significanceMethod,
+      p_adjust_threshold: parseFloat(significanceThreshold),
+    };
+
+    // Add custom background if selected
+    if (statisticalDomain === "custom") {
+      enrichmentRequest.background_genes = customBackgroundText.trim().split(/\r?\n/).filter(Boolean);
+    }
       
       // Submit to API
       const response = await fetch('http://localhost:8000/wormcat3/run-and-wait', {
@@ -201,7 +212,7 @@ export default function WormCatBatchForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(enrichmentRequest),
       });
       
       if (!response.ok) {
@@ -212,7 +223,7 @@ export default function WormCatBatchForm() {
       console.log("Task started:", data);
       
       // Set task ID which will trigger WebSocket connection in useEffect
-      setTaskId(data.task_id);
+      setTaskId(data.run_id);
       
     } catch (error) {
       console.error("Error starting task:", error);
@@ -221,29 +232,11 @@ export default function WormCatBatchForm() {
     }
   };
   
-  const handleDownloadResults = async () => {
-    if (!resultUrl) return;
-    
-    try {
-      const response = await fetch(resultUrl);
-      if (!response.ok) {
-        throw new Error(`Download failed: ${response.status}`);
-      }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `wormcat-batch-results-${taskId}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Download error:", error);
-    }
-  };
+    // Handle download button click
+    const handleDownloadResults = useCallback((file_name) => {
+      window.location.href = `/dynamic/wormcat_out/${file_name}`;
+    }, []);
+
 
   // Handle the drop event
   const handleDrop = async (e) => {
@@ -312,14 +305,14 @@ export default function WormCatBatchForm() {
               
               <div className="flex justify-between text-xs text-gray-600">
                 <span>{progress}% Complete</span>
-                {taskStatus === 'COMPLETED' && (
-                  <span className="text-green-600">Analysis completed successfully</span>
+                {progressMessage !== undefined && (
+                  <span className="text-green-600">{progressMessage}</span>
                 )}
               </div>
               
               {taskStatus === 'COMPLETED' && resultUrl && (
                 <button
-                  onClick={handleDownloadResults}
+                  onClick={() => handleDownloadResults(resultUrl)}
                   className="mt-4 w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition duration-200 flex items-center justify-center"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">

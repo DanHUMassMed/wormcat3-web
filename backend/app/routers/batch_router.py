@@ -81,11 +81,37 @@ async def run_and_email(request: Request):
         
 @router.post("/run-and-wait")
 async def run_and_wait(request: Request):
-    task_id = str(uuid.uuid4())
-    #TODO update to wormcat batch process
-    run_and_wait_task.apply_async(args=[task_id])
-    print(f"task_id: {task_id}")
-    return {"task_id": task_id}
+    print("run_and_wait called")
+    try:
+        raw_body = await request.body()
+        parsed_body = json.loads(raw_body)
+        print(parsed_body)
+        enrichment_request = EnrichmentRequest(**parsed_body)
+    except json.JSONDecodeError as e:
+        return EnrichmentResponse(
+            status_code="400",
+            message=f"Invalid JSON format: {str(e)}",
+        )
+    except ValidationError as e:
+        error_messages = "; ".join(
+            [f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in e.errors()]
+        )
+        return EnrichmentResponse(
+            status_code="422",
+            message=f"Validation error: {error_messages}",
+        )
+    
+    try:
+        task_id = str(uuid.uuid4())
+        print(f"before run_and_email_task.apply_async")
+        run_and_wait_task.apply_async(kwargs={"enrichment_request": enrichment_request.model_dump(),"task_id":task_id})
+        print(f"after run_and_email_task.apply_async")
+        return EnrichmentResponse(run_id=task_id)
+    except Exception as e:
+        print("run_and_email failed!!")
+        print(str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
