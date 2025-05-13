@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FormField } from "./FormField";
-import FileUploadZone from "./FileUploadZone";
+import { FileUploadZone } from "./FileUploadZone.js";
 
 export const CustomBackgroundSection = ({
   show,

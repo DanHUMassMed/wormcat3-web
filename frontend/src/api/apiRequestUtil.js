@@ -3,16 +3,19 @@ import axios, {isCancel, AxiosError} from 'axios';
 const BASE_URL = 'http://localhost:8000';
 const API_TIMEOUT_MS = 15000;
 
-export const apiRequest = async (method, endpoint, data = null) => {
+export const apiRequest = async (method, endpoint, data = null, config = null) => {
   try {
     const url = `${BASE_URL}${endpoint}`;
-    const config = {
-      headers: {
-        'Content-Type': 'application/json', // I'm sending JSON
-        'Accept': 'application/json'        // I expect JSON back
-      },
-      timeout: API_TIMEOUT_MS
-     };
+    
+    if(!config){
+      config = {
+        headers: {
+          'Content-Type': 'application/json', // I'm sending JSON
+          'Accept': 'application/json'        // I expect JSON back
+        },
+        timeout: API_TIMEOUT_MS
+      };
+    }
 
      const methods = {
       get: () => axios.get(url, config),

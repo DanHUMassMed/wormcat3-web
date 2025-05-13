@@ -1,9 +1,9 @@
 import React from "react";
 import { AnimatePresence } from "framer-motion";
-import FileUploadZone from "./shared/FileUploadZone.js";
+import { FileUploadZone } from "./shared/FileUploadZone.js";
+import { CustomBackgroundSection } from "./shared/CustomBackgroundSection";
 import { FormField } from "./shared/FormField";
 import { LoadingButton } from "./shared/LoadingButton";
-import { CustomBackgroundSection } from "./shared/CustomBackgroundSection";
 import { useWormCatFields } from "../hooks/useWormCatFields";
 import { useWormCatSubmit } from "../hooks/useWormCatSubmit";
 import { ANNOTATION_OPTIONS, SIGNIFICANCE_METHODS, DOMAIN_SCOPES } from "./constants";
@@ -87,9 +87,7 @@ export default function WormCatForm() {
           </FormField>
           
           {/* Annotation Type */}
-          <FormField 
-            label="Annotation Type"
-          >
+          <FormField label="Annotation Type">
             <select
               value={annotationType}
               onChange={(e) => setAnnotationType(e.target.value)}

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import FileUploadZone from "./shared/FileUploadZone.js";
+import { FileUploadZone } from "./shared/FileUploadZone.js";
 import { FormField } from "./shared/FormField";
 import { LoadingButton } from "./shared/LoadingButton";
 import { CustomBackgroundSection } from "./shared/CustomBackgroundSection";

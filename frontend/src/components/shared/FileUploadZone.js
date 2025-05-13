@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 
 // File Upload Component with improved drag handling, click-to-browse functionality, and error display
-const FileUploadZone = ({ fileName, onDrop, label, id, errorMessage, disabled = false }) => {
+export  const FileUploadZone = ({ fileName, onDrop, label, id, errorMessage, disabled = false }) => {
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [error, setError] = useState(errorMessage || null);
   const dropzoneRef = useRef(null);
@@ -151,5 +151,3 @@ const FileUploadZone = ({ fileName, onDrop, label, id, errorMessage, disabled = 
     </div>
   );
 };
-
-export default FileUploadZone;
