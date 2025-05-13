@@ -37,14 +37,14 @@ export const useFileUpload = (setUploadId) => {
         setUploadId(`${response.data.job_id}/${file.name}`);
         const successMessage = `Upload successful. Job ID: ${response.data.job_id}`;
         setUploadStatus(successMessage);
-        validation.setValidationErrors(context, "Upload successful.")
+        validation.setValidationError(context, "Upload successful.")
         return { success: true, jobId: response.data.job_id, message: successMessage };
       } else {
         throw new Error("Invalid response from server");
       }
     } catch (error) {
       const errorMessage = `Upload failed: ${error.message || error}`;
-      validation.setValidationErrors(context, errorMessage)
+      validation.setValidationError(context, errorMessage)
       setUploadStatus(errorMessage);
       return { success: false, message: errorMessage };
     }
@@ -96,7 +96,7 @@ export const useFileUpload = (setUploadId) => {
     if (context === "excelFile") {
       const excelFileValidation = validation.isValidExcelFile(file);
       if (!excelFileValidation.valid) {
-        validation.setValidationErrors(context, excelFileValidation.message)
+        validation.setValidationError(context, excelFileValidation.message)
         return { valid: false, message: excelFileValidation.message };
       }
       
@@ -153,7 +153,7 @@ export const useFileUpload = (setUploadId) => {
         } else {
           // If we have validation errors, set them
           if (context) {
-            validation.setValidationErrors(context, readResult.message);
+            validation.setValidationError(context, readResult.message);
           }
         }
         
@@ -190,7 +190,6 @@ export const useFileUpload = (setUploadId) => {
     fileContents,
     handleFileDrop,
     uploadStatus,
-    setUploadStatus,
-    uploadFile // Exposing this in case it needs to be called directly
+    setUploadStatus
   };
 };

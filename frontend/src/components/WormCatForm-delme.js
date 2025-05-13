@@ -1,50 +1,48 @@
-import React from "react";
-import { AnimatePresence } from "framer-motion";
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import FileUploadZone from "./shared/FileUploadZone.js";
 import { FormField } from "./shared/FormField";
 import { LoadingButton } from "./shared/LoadingButton";
 import { CustomBackgroundSection } from "./shared/CustomBackgroundSection";
-import { useWormCatFields } from "../hooks/useWormCatFields";
-import { useWormCatSubmit } from "../hooks/useWormCatSubmit";
+import { useWormCatForm } from "../hooks/useWormCatForm";
 import { ANNOTATION_OPTIONS, SIGNIFICANCE_METHODS, DOMAIN_SCOPES } from "./constants";
 
 export default function WormCatForm() {
-  const requiredGeneSet = true // true indicates that a GeneSet is required
-  const fields = useWormCatFields(requiredGeneSet);
-  const {     
-    email,
-    setEmail,
-    annotationType,
-    setAnnotationType,
-    significanceMethod,
-    setSignificanceMethod,
-    significanceThreshold,
-    setSignificanceThreshold,
-    analysisTitle,
-    setAnalysisTitle,
-    statisticalDomain,
-    setStatisticalDomain,
-    customBackgroundText,
-    setCustomBackgroundText,
-    geneSetText, 
-    setGeneSetText,
-    
-    // Validation
-    validation,
-
-    handleLocalFileExpand,
-    fileNames
-  }  = fields;
-    
   const {
-    onClickRunAnalysis,
-    loading,
-    errorMessage 
-  }  = useWormCatSubmit(fields);
-
-  // Form is disabled when loading, or if there is major error message
-  const isFormDisabled = loading || Boolean(errorMessage);
-
+      // Form state
+      email,
+      setEmail,
+      annotationType,
+      setAnnotationType,
+      significanceMethod,
+      setSignificanceMethod,
+      significanceThreshold,
+      setSignificanceThreshold,
+      analysisTitle,
+      setAnalysisTitle,
+      statisticalDomain,
+      setStatisticalDomain,
+      customBackgroundText,
+      setCustomBackgroundText,
+      
+      // Single form state
+      geneSetText,
+      setGeneSetText,
+      
+      // UI state
+      loading,
+      errorMessage,
+      
+      // File handling
+      fileUpload,
+      
+      // Validation
+      validation,
+      
+      // Form submission
+      handleSubmit
+    } = useWormCatForm(); // false indicates this is not a batch form
+    
   // Function to handle form submission and prevent default behavior
   const onFormSubmit = (e) => {
     e.preventDefault();
@@ -69,33 +67,28 @@ export default function WormCatForm() {
           <FormField 
           label="Email" 
           required
-          error={validation.validationErrors.email}
-          >
+          error={validation.validationErrors.email}>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.edu"
+              placeholder="your.email@example.com"
               className={`w-full border rounded p-2 focus:outline-none focus:ring-2 ${
                 validation.validationErrors.email 
                   ? "border-red-500 focus:ring-red-500" 
                   : "focus:ring-blue-500"
               }`}
               required
-              disabled={isFormDisabled}
-              />
+            />
           </FormField>
           
           {/* Annotation Type */}
-          <FormField 
-            label="Annotation Type"
-          >
+          <FormField label="Annotation Type">
             <select
               value={annotationType}
               onChange={(e) => setAnnotationType(e.target.value)}
               className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isFormDisabled}
-              >
+            >
               {ANNOTATION_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -105,15 +98,12 @@ export default function WormCatForm() {
           </FormField>
           
           {/* Significance Method */}
-          <FormField 
-            label="Significance Method"
-          >
+          <FormField label="Significance Method">
             <select
               value={significanceMethod}
               onChange={(e) => setSignificanceMethod(e.target.value)}
               className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isFormDisabled}
-              >
+            >
               {SIGNIFICANCE_METHODS.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -123,10 +113,7 @@ export default function WormCatForm() {
           </FormField>
           
           {/* Significance Threshold */}
-          <FormField 
-            label="Significance Threshold"
-            error={validation.validationErrors.significanceThreshold}
-            >
+          <FormField label="Significance Threshold">
             <input
               type="number"
               step="0.01"
@@ -136,8 +123,7 @@ export default function WormCatForm() {
               onChange={(e) => setSignificanceThreshold(e.target.value)}
               className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
-              disabled={isFormDisabled}
-              />
+            />
           </FormField>
         </div>
 
@@ -147,8 +133,7 @@ export default function WormCatForm() {
             value={statisticalDomain}
             onChange={(e) => setStatisticalDomain(e.target.value)}
             className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isFormDisabled}
-            >
+          >
             {DOMAIN_SCOPES.map(option => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -161,28 +146,23 @@ export default function WormCatForm() {
         <AnimatePresence>
           <CustomBackgroundSection
             show={statisticalDomain === "custom"}
-            fileName={fileNames.customBackground}
+            fileName={fileUpload.fileNames.customBackground}
             customBackgroundText={customBackgroundText}
             setCustomBackgroundText={setCustomBackgroundText}
-            handleFileDrop={(e) => handleLocalFileExpand(e, 'customBackground', setCustomBackgroundText)}
-            disabled={isFormDisabled}
+            handleFileDrop={(e) => fileUpload.handleFileDrop(e, 'customBackground', setCustomBackgroundText)}
             error={validation.validationErrors.customBackground}
           />          
         </AnimatePresence>
 
         {/* Analysis Title */}
-        <FormField 
-          label="Analysis Title"
-          error={validation.validationErrors.analysisTitle}
-          >
+        <FormField label="Analysis Title">
           <input
             type="text"
             value={analysisTitle}
             onChange={(e) => setAnalysisTitle(e.target.value)}
             placeholder="Gene Set Analysis"
             className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isFormDisabled}
-            />
+          />
         </FormField>
 
         {/* Regulated Gene Set */}
@@ -192,12 +172,11 @@ export default function WormCatForm() {
           error={validation.validationErrors.geneSet}
           >
           <FileUploadZone 
-            fileName={fileNames.geneSet}
-            onDrop={(e) => handleLocalFileExpand(e, 'geneSet', setGeneSetText)}
+            fileName={fileUpload.fileNames.geneSet}
+            onDrop={(e) => fileUpload.handleFileDrop(e, 'geneSet', setGeneSetText)}
             label="Gene Set"
             id="gene-set-drop"
-            disabled={isFormDisabled}
-            />
+          />
           <textarea
             id="gene-set-textarea-id"
             value={geneSetText}
@@ -210,8 +189,7 @@ export default function WormCatForm() {
                 : "focus:ring-blue-500"
             }`}
             required
-            disabled={isFormDisabled}
-            />
+          />
           <p className="text-xs text-gray-500 mt-1">
             Note: Each row should contain a single gene ID (either Sequence ID or WBGene format)
           </p>
@@ -223,8 +201,7 @@ export default function WormCatForm() {
               loading={loading} 
               text="Submit and Run Analysis" 
               loadingText="Processing..."
-              onClick={onClickRunAnalysis}
-              disabled={isFormDisabled}
+              onClick={handleSubmit}
             />
         </div>
       </form>

@@ -9,7 +9,8 @@ export const CustomBackgroundSection = ({
   customBackgroundText,
   setCustomBackgroundText,
   handleFileDrop,
-  error
+  error,
+  disabled = false
 }) => {
   if (!show) return null;
   
@@ -30,6 +31,7 @@ export const CustomBackgroundSection = ({
               onDrop={(e) => handleFileDrop(e, 'customBackground')}
               label="Custom Background"
               id="custom-background-drop"
+              disabled={disabled}
             />
             <textarea
               id="custom-background-textarea-id"
@@ -42,6 +44,7 @@ export const CustomBackgroundSection = ({
                   ? "border-red-500 focus:ring-red-500" 
                   : "focus:ring-blue-500"
               }`}
+              disabled={disabled}
             />
         </FormField>
       </div>
