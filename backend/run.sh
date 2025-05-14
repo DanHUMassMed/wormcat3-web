@@ -38,4 +38,16 @@ if [ "$3" == "ACTIVATE_DEBUG" ]; then
 fi
 clear
 
-uvicorn app.main:app --reload
+NUM_WORKERS=3
+TIMEOUT=120
+PID_FILE="gunicorn.pid"
+PORT=8000
+
+#uvicorn app.main:app --reload
+gunicorn app.main:app \
+--workers $NUM_WORKERS \
+--worker-class uvicorn.workers.UvicornWorker \
+--timeout $TIMEOUT \
+--log-level=debug \
+--bind=0.0.0.0:$PORT \
+--pid=$PID_FILE

@@ -129,7 +129,6 @@ export const useWormCatBatchProcessor = (fields) => {
             return
         }
       
-
         try {
           // Reset states
           setProgress(0);
@@ -138,11 +137,6 @@ export const useWormCatBatchProcessor = (fields) => {
           setIsRunning(true);
           setSubmissionType("run");
           
-          // Validate form before submitting
-          // if (!validation.validateForm()) {
-          //   setIsRunning(false);
-          //   return;
-          // }
           
         // Prepare request payload
         const enrichmentRequest = {

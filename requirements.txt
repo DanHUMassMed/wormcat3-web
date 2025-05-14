@@ -7,3 +7,4 @@ celery
 redis
 python-multipart
 openpyxl
+gunicorn

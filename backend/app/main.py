@@ -1,11 +1,9 @@
 import os
 
-from app import constants
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import debugpy
 from app.routers import enrichment_router, batch_router, gsea_router
-from app.tasks.celery_tasks import celery
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "FALSE")
 if ACTIVATE_DEBUG=="TRUE":

@@ -22,3 +22,5 @@ frontend/build/
 **/build/
 **/node_modules/
 notebooks/data/
+
+gunicorn.pid

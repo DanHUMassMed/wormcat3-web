@@ -26,7 +26,7 @@ ensure_conda_env wormcat3-web
 
 if [ "$1" == "build" ]; then
     npm run build
-    npx serve -s build
+    node server.js
 else
     npm run start
 fi

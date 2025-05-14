@@ -1,5 +1,5 @@
 import test from 'ava';
-import { analyze_and_visualize_enrichment } from '../../api/enrichmentAPI.mjs'; // <-- adjust path if needed
+import { analyze_and_visualize_enrichment } from '../../api/enrichmentAPI.mjs';
 
 const enrichmentRequest = {
   gene_set: ["gene1", "gene2", "gene3"],
