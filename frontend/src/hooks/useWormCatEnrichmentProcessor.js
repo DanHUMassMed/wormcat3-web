@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { analyze_and_visualize_enrichment } from "../api/enrichmentAPI";
 
-export const useWormCatSubmit = (fields) => {
+export const useWormCatEnrichmentProcessor = (fields) => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");

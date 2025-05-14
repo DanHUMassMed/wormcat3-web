@@ -4,63 +4,261 @@ import { FileUploadZone } from "./shared/FileUploadZone.js";
 import { FormField } from "./shared/FormField";
 import { LoadingButton } from "./shared/LoadingButton";
 import { CustomBackgroundSection } from "./shared/CustomBackgroundSection";
-import { useWormCatFields } from "../hooks/useWormCatFields";
-import { useWormCatBatchProcessor } from "../hooks/useWormCatBatchProcessor";
+import { useWormCatForm } from "../hooks/useWormCatForm";
 import { ANNOTATION_OPTIONS, SIGNIFICANCE_METHODS, DOMAIN_SCOPES } from "./constants";
 
 export default function WormCatBatchForm() {
-  const fields = useWormCatFields();
-  const {     
-    email,
-    setEmail,
-    annotationType,
-    setAnnotationType,
-    significanceMethod,
-    setSignificanceMethod,
-    significanceThreshold,
-    setSignificanceThreshold,
-    analysisTitle,
-    setAnalysisTitle,
-    statisticalDomain,
-    setStatisticalDomain,
-    customBackgroundText,
-    setCustomBackgroundText,
-    
-    // Validation
-    validation,
-
-    handleLocalFileExpand,
-    fileNames
-  }  = fields;
-    
   const {
-    onHandleFileDrop,
-    excelFileName,
-
-    progress,
-    progressMessage,
-    taskStatus,
-    isRunning,
-    submissionType,
-    resultUrl,
-
-    handleRunAndWait,
-    handleSubmitAndEmail,
-    handleDownloadResults,
-
-    loading,
-    errorMessage 
-  }  = useWormCatBatchProcessor(fields);
-
+      // Form state
+      email,
+      setEmail,
+      annotationType,
+      setAnnotationType,
+      significanceMethod,
+      setSignificanceMethod,
+      significanceThreshold,
+      setSignificanceThreshold,
+      analysisTitle,
+      setAnalysisTitle,
+      statisticalDomain,
+      setStatisticalDomain,
+      customBackgroundText,
+      setCustomBackgroundText,
+      uploadId,
+      setUploadId,
+        
+      // Single form state
+      geneSetText,
+      setGeneSetText,
+      
+      // UI state
+      loading,
+      errorMessage,
+      
+      // File handling
+      fileUpload,
+      
+      // Validation
+      validation
+      
+   
+    } = useWormCatForm(); // false indicates this is not a batch form
+  
   // Function to handle form submission and prevent default behavior
   const onFormSubmit = (e) => {
     e.preventDefault();
     // Form validation and submission will be handled in the hook
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [submissionType, setSubmissionType] = useState("");
+  const [validationMessage, setValidationMessage] = useState('');
+  const [taskId, setTaskId] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState('');
+  const [taskStatus, setTaskStatus] = useState('Idle');
+  const [resultUrl, setResultUrl] = useState(null);
+  const [websocket, setWebsocket] = useState(null);
+
+  // Effect to handle WebSocket connection and cleanup
+  useEffect(() => {
+    // Clean up WebSocket connection when component unmounts
+    return () => {
+      if (websocket) {
+        websocket.close();
+      }
+    };
+  }, []);
+
+  // Effect to handle WebSocket messages when taskId changes
+  useEffect(() => {
+    if (!taskId) return;
+
+    // Close previous connection if exists
+    if (websocket) {
+      websocket.close();
+    }
+
+    // Create new WebSocket connection
+    const ws = new WebSocket(`ws://localhost:8000/wormcat3/ws/${taskId}`);
+    setWebsocket(ws);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('WebSocket message:::', data);
+      
+      if (data.progress !== undefined) {
+        setProgress(data.progress);
+      }
+      if (data.message !== undefined) {
+        setProgressMessage(data.message);
+      }
+      
+      if (data.state) {
+        setTaskStatus(data.state);
+        
+        if (data.state === 'COMPLETED') {
+          setIsRunning(false);
+          if (data.result_url) {
+            setResultUrl(data.result_url);
+          }
+          ws.close();
+        } else if (data.state === 'FAILED') {
+          setIsRunning(false);
+          ws.close();
+        }
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      setTaskStatus('Error');
+      setIsRunning(false);
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [taskId]);
+
+  const handleSubmitAndEmail = async () => {
+    setIsSubmitting(true);
+    
+    // Prepare request payload
+    const enrichmentRequest = {
+      gene_set: uploadId,
+      title: analysisTitle || 'Analysis',
+      email: email,
+      annotation_file_name: annotationType,
+      p_adjust_method: significanceMethod,
+      p_adjust_threshold: parseFloat(significanceThreshold),
+    };
+
+    // Add custom background if selected
+    if (statisticalDomain === "custom") {
+      enrichmentRequest.background_genes = customBackgroundText.trim().split(/\r?\n/).filter(Boolean);
+    }
+
+    try {
+      // Submit to API
+      const response = await fetch('http://localhost:8000/wormcat3/run-and-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(enrichmentRequest),
+      });
+      
+      if (response.ok) {
+        setSubmissionType("email");
+        setTaskStatus('COMPLETED');
+      }else{
+        setTaskStatus('Failed');
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      setIsSubmitting(false);
+
+    } catch (error) {
+      console.error("Error starting task:", error);
+      setTaskStatus('Failed');
+      setIsSubmitting(false);
+      setIsRunning(false);
+    }
+
+  };
+  
+  const handleRunAndWait = async () => {
+    try {
+      // Reset states
+      setProgress(0);
+      setResultUrl(null);
+      setTaskStatus('Starting');
+      setIsRunning(true);
+      setSubmissionType("run");
+      
+      // Validate form before submitting
+      // if (!validation.validateForm()) {
+      //   setIsRunning(false);
+      //   return;
+      // }
+      
+    // Prepare request payload
+    const enrichmentRequest = {
+      gene_set: uploadId,
+      title: analysisTitle || 'Analysis',
+      email: email,
+      annotation_file_name: annotationType,
+      p_adjust_method: significanceMethod,
+      p_adjust_threshold: parseFloat(significanceThreshold),
+    };
+
+    // Add custom background if selected
+    if (statisticalDomain === "custom") {
+      enrichmentRequest.background_genes = customBackgroundText.trim().split(/\r?\n/).filter(Boolean);
+    }
+      
+      // Submit to API
+      const response = await fetch('http://localhost:8000/wormcat3/run-and-wait', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(enrichmentRequest),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Task started:", data);
+      
+      // Set task ID which will trigger WebSocket connection in useEffect
+      setTaskId(data.run_id);
+      
+    } catch (error) {
+      console.error("Error starting task:", error);
+      setTaskStatus('Failed');
+      setIsRunning(false);
+    }
+  };
+  
+    // Handle download button click
+    const handleDownloadResults = useCallback((file_name) => {
+      window.location.href = `/dynamic/wormcat_out/${file_name}`;
+    }, []);
+
+
+  // Handle the drop event
+  const handleDrop = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      
+      // Clear any previous messages
+      setValidationMessage('');
+      
+      // Excel file upload
+      const result = await fileUpload.handleFileDrop(e, 'excelFile');
+      
+      if (!result.valid) {
+        setValidationMessage(result.message);
+      } else if (result.jobId) {
+        setValidationMessage(`File uploaded successfully. Job ID: ${result.jobId}`);
+      }
+    };
 
   // Form is disabled when submitting, running, or completed and waiting for download
-  const isFormDisabled = loading || isRunning || taskStatus === 'COMPLETED';
+  const isFormDisabled = isSubmitting || isRunning || taskStatus === 'COMPLETED';
 
   // Progress bar variants for animation
   const progressBarVariants = {
@@ -218,10 +416,10 @@ export default function WormCatBatchForm() {
         <AnimatePresence>
           <CustomBackgroundSection
             show={statisticalDomain === "custom"}
-            fileName={fileNames.customBackground}
+            fileName={fileUpload.fileNames.customBackground}
             customBackgroundText={customBackgroundText}
             setCustomBackgroundText={setCustomBackgroundText}
-            handleFileDrop={(e) => handleLocalFileExpand(e, 'customBackground', setCustomBackgroundText)}
+            handleFileDrop={(e) => fileUpload.handleFileDrop(e, 'customBackground', setCustomBackgroundText)}
             error={validation.validationErrors.customBackground}
             disabled={isFormDisabled}
           />          
@@ -241,13 +439,13 @@ export default function WormCatBatchForm() {
 
         {/* Batch Gene Sets */}
         <FormField 
-          label="Excel Batch Gene Sets" 
+          label="Batch Gene Sets" 
           required
           error={validation.validationErrors.excelFile}
           >
           <FileUploadZone 
-            fileName={excelFileName}
-            onDrop={(e) => onHandleFileDrop(e)}
+            fileName={fileUpload.fileNames.excelFile}
+            onDrop={(e) => fileUpload.handleFileDrop(e, 'excelFile')}
             label="Excel file"
             id="batch-gene-set-drop"
             disabled={isFormDisabled}
@@ -266,18 +464,18 @@ export default function WormCatBatchForm() {
         {/* Submit Buttons */}
         <div className="flex justify-between w-full px-4 gap-4">
           <LoadingButton
-            loading={isRunning}
+            loading={isSubmitting}
             text="Send me an Email"
             loadingText="Sending..."
             onClick={handleSubmitAndEmail}
-            disabled={isFormDisabled}
+            disabled={isRunning || taskStatus === 'COMPLETED'}
           />
           <LoadingButton
             loading={isRunning}
             text="Let it run I'll wait"
             loadingText={`Processing... ${progress}%`}
             onClick={handleRunAndWait}
-            disabled={isFormDisabled}
+            disabled={isSubmitting || taskStatus === 'COMPLETED'}
           />
         </div>
       </form>

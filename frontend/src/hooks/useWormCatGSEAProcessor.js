@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { perform_gsea_analysis } from "../api/enrichmentAPI";
 
 
-export const useWormCatGSEAForm = () => {
+export const useWormCatGSEAProcessor = () => {
     const navigate = useNavigate();
     const validation = useFieldValidation();
 

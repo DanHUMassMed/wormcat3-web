@@ -5,10 +5,10 @@ import { CustomBackgroundSection } from "./shared/CustomBackgroundSection";
 import { FormField } from "./shared/FormField";
 import { LoadingButton } from "./shared/LoadingButton";
 import { useWormCatFields } from "../hooks/useWormCatFields";
-import { useWormCatSubmit } from "../hooks/useWormCatSubmit";
+import { useWormCatEnrichmentProcessor } from "../hooks/useWormCatEnrichmentProcessor";
 import { ANNOTATION_OPTIONS, SIGNIFICANCE_METHODS, DOMAIN_SCOPES } from "./constants";
 
-export default function WormCatForm() {
+export default function WormCatEnrichmentForm() {
   const requiredGeneSet = true // true indicates that a GeneSet is required
   const fields = useWormCatFields(requiredGeneSet);
   const {     
@@ -38,9 +38,10 @@ export default function WormCatForm() {
     
   const {
     onClickRunAnalysis,
+    
     loading,
     errorMessage 
-  }  = useWormCatSubmit(fields);
+  }  = useWormCatEnrichmentProcessor(fields);
 
   // Form is disabled when loading, or if there is major error message
   const isFormDisabled = loading || Boolean(errorMessage);

@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
-import WormCatForm from "./components/WormCatForm";
+import WormCatEnrichmentForm from "./components/WormCatEnrichmentForm";
 import WormCatBatchForm from "./components/WormCatBatchForm";
 import WormCatGSEAForm from "./components/WormCatGSEAForm";
-import WormCatReport from "./components/WormCatReport";
+import WormCatEnrichmentReport from "./components/WormCatEnrichmentReport";
 import WormCatGSEAReport from "./components/WormCatGSEAReport";
 import TaskRunner from "./components/TaskRunner";
 
@@ -71,11 +71,11 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route path="test" element={<TaskRunner />} />
-          <Route index element={<WormCatForm />} />
+          <Route index element={<WormCatEnrichmentForm />} />
           <Route path="batch" element={<WormCatBatchForm />} />
           <Route path="gsea" element={<WormCatGSEAForm />} />
           <Route path="report" element={<Navigate to="/" />} />
-          <Route path="report/:run_id" element={<WormCatReport />} />
+          <Route path="report/:run_id" element={<WormCatEnrichmentReport />} />
           <Route path="gsea_report/:run_id" element={<WormCatGSEAReport />} />
         </Route>
       </Routes>

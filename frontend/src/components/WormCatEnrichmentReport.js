@@ -171,7 +171,7 @@ const CategorySection = ({ title, imageUrl, tableData, sortConfig, onSort, corre
   </div>
 );
 
-const WormCatReport = () => {
+export default function WormCatEnrichmentReport() {
   const { run_id } = useParams();
   const navigate = useNavigate();
 
@@ -327,5 +327,3 @@ const WormCatReport = () => {
     </div>
   );
 };
-
-export default WormCatReport;

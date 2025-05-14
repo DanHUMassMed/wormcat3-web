@@ -149,7 +149,7 @@ const CategorySection = ({ title, tableData, sortConfig, onSort }) => (
   </div>
 );
 
-const WormCatGSEAReport = () => {
+export default function WormCatGSEAReport() {
   const { run_id } = useParams();
   const navigate = useNavigate();
 
@@ -285,5 +285,3 @@ const WormCatGSEAReport = () => {
     </div>
   );
 };
-
-export default WormCatGSEAReport;

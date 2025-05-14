@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { FileUploadZone } from "./shared/FileUploadZone.js";
 import { FormField } from "./shared/FormField";
 import { LoadingButton } from "./shared/LoadingButton";
-import { useWormCatGSEAForm } from "../hooks/useWormCatGSEA";
+import { useWormCatGSEAProcessor } from "../hooks/useWormCatGSEAProcessor";
 import { ANNOTATION_OPTIONS } from "./constants";
 
 export default function WormCatGSEAForm() {
@@ -24,8 +24,9 @@ export default function WormCatGSEAForm() {
  
      // File load
      onHandleFileDrop,
+     
      onClickRunGSEA
-    } = useWormCatGSEAForm(); // false indicates this is not a batch form
+    } = useWormCatGSEAProcessor(); // false indicates this is not a batch form
   
    // Form is disabled when loading, or if there is major error message
    const isFormDisabled = loading || Boolean(errorMessage);
@@ -35,10 +36,6 @@ export default function WormCatGSEAForm() {
     e.preventDefault();
     // Form validation and submission will be handled in the hook
   };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [submissionType, setSubmissionType] = useState("");
 
 
   return (

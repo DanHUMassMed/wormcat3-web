@@ -54,7 +54,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
         WormcatExcel.extract_csv_files(excel_file_path, csv_file_path)
         msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":"Extracting Excel files"})
         redis_client.publish(f"task:{task_id}", msg)
-        time.sleep(0.1)
+        time.sleep(0.3)
     except Exception as e:
         print(f"Error: {str(e)}")
         return
@@ -67,7 +67,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
             percent_complete += increment
             msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":f"Processing {file.stem} sheet"})
             redis_client.publish(f"task:{task_id}", msg)
-            time.sleep(0.1)
+            time.sleep(0.3)
             wormcat = Wormcat(working_dir_path=working_dir_path, annotation_file_name=enrichment_request['annotation_file_name'], title=file.stem)
             wormcat.analyze_and_visualize_enrichment(str(file), enrichment_request['background'], 
                                                      p_adjust_method = PAdjustMethod.from_str(enrichment_request['p_adjust_method']), 
@@ -79,7 +79,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
     percent_complete += 10
     msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":"Summarizing Analysis Results"})
     redis_client.publish(f"task:{task_id}", msg)
-    time.sleep(0.1)
+    time.sleep(0.3)
     annotation_file_path = wormcat_base.annotation_manager.annotation_file_path
     wormcat_excel = WormcatExcel()
     wormcat_excel.create_summary_spreadsheet(working_dir_path, annotation_file_path, f"{working_dir_path}/{Path(working_dir_path).stem}.xlsx")
