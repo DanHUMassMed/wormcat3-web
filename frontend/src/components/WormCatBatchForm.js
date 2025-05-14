@@ -60,7 +60,7 @@ export default function WormCatBatchForm() {
 
 
   // Form is disabled when submitting, running, or completed and waiting for download
-  const isFormDisabled = loading || isRunning || taskStatus === 'COMPLETED';
+  const isFormDisabled = loading || isRunning || taskStatus === 'COMPLETED'|| taskStatus === 'EMAILED';
 
   // Progress bar variants for animation
   const progressBarVariants = {
@@ -228,7 +228,10 @@ export default function WormCatBatchForm() {
         </AnimatePresence>
 
         {/* Analysis Title */}
-        <FormField label="Analysis Title">
+        <FormField 
+          label="Analysis Title"
+          error={validation.validationErrors.analysisTitle}
+          >
           <input
             type="text"
             value={analysisTitle}
@@ -259,16 +262,14 @@ export default function WormCatBatchForm() {
         
         {submissionType === "email" && !isRunning && (
           <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
-            Form submitted. An email will be sent when processing is complete.
+            Form submitted. An email will be sent to <strong>{email}</strong> when processing is complete.
           </div>
         )}
         
         {/* Submit Buttons */}
         <div className="flex justify-between w-full px-4 gap-4">
           <LoadingButton
-            loading={isRunning}
-            text="Send me an Email"
-            loadingText="Sending..."
+            text={taskStatus === 'EMAILED' ? "Email will be sent" : "Send me an Email"}
             onClick={handleSubmitAndEmail}
             disabled={isFormDisabled}
           />

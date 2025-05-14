@@ -92,7 +92,9 @@ export default function WormCatGSEAForm() {
         </div>  
 
         {/* Analysis Title */}
-        <FormField label="Analysis Title">
+        <FormField 
+          label="Analysis Title"
+          error={validation.validationErrors.analysisTitle}>
           <input
             type="text"
             value={analysisTitle}

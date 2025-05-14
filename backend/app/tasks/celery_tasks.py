@@ -93,6 +93,10 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
 @celery.task(bind=True)
 def run_and_email_task(self, enrichment_request: dict, task_id: str):
     print("run_and_email_task called")
+    print(enrichment_request)
+    print(f"wormcat out path: {WORMCAT_OUT_PATH}")
+    print(f"get_upload_dir_path: {get_upload_dir_path()}")
+
     try:
         wormcat = Wormcat(working_dir_path=WORMCAT_OUT_PATH, 
                           title=enrichment_request['title'], 
@@ -100,7 +104,7 @@ def run_and_email_task(self, enrichment_request: dict, task_id: str):
                           email=enrichment_request['email'])
         
         input_file_path=f"{get_upload_dir_path()}/{enrichment_request['gene_set']}"
-        print(f"""input_file_path: {input_file_path}""")
+        print(f"input_file_path: {input_file_path}")
         wormcat.wormcat_batch(
                     input_data = input_file_path, 
                     background_input = enrichment_request['background'], 
@@ -108,6 +112,8 @@ def run_and_email_task(self, enrichment_request: dict, task_id: str):
                     p_adjust_threshold = ensure_float(enrichment_request['p_adjust_threshold']))
 
         output_zip_path = zip_dir(wormcat.working_dir_path)
+        print(f"email_results: {enrichment_request['email']}")
+        print(f"output_zip_path: {output_zip_path}")
         email_results(enrichment_request['email'], output_zip_path)
     except Exception as e:
         print("run_and_email_task failed!!")

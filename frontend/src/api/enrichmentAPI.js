@@ -21,3 +21,14 @@ export const upload_file = (fileUploadRequest) => {
     const result =  apiRequest('post', `/wormcat3/upload_file`, fileUploadRequest, requestConfig);
     return result
 };
+
+
+export const run_and_email = (enrichmentRequest) => {
+    const result =  apiRequest('post', `/wormcat3/run_and_email`, enrichmentRequest);
+    return result
+};
+  
+export const run_and_wait = (enrichmentRequest) => {
+    const result =  apiRequest('post', `/wormcat3/run_and_wait`, enrichmentRequest);
+    return result
+};

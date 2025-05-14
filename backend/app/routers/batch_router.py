@@ -45,7 +45,7 @@ async def upload_file(file: UploadFile = File(...)):
     return {"job_id": job_id}
 
 
-@router.post("/run-and-email")
+@router.post("/run_and_email")
 async def run_and_email(request: Request):
     print("run_and_email called")
     try:
@@ -76,10 +76,14 @@ async def run_and_email(request: Request):
     except Exception as e:
         print("run_and_email failed!!")
         print(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        return EnrichmentResponse(
+            status_code="500",
+            message=f"Dispatch error: {str(e)}",
+        )
+    
     
         
-@router.post("/run-and-wait")
+@router.post("/run_and_wait")
 async def run_and_wait(request: Request):
     print("run_and_wait called")
     try:

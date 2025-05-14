@@ -25,7 +25,11 @@ export const useWormCatGSEAProcessor = () => {
         validation.resetValidationErrors();
 
         // Validate email
-        if (!email) {
+        if (email) {
+            if(!isValidEmail(email)){
+                newErrors.email = "Email format is not valid";
+            }
+        } else {
             newErrors.email = "Email is required";
         }
 
@@ -57,17 +61,61 @@ export const useWormCatGSEAProcessor = () => {
 
     // Utility function to check ASCII characters
     const isASCII = (text) => /^[\x09\x0A\x0D\x20-\x7E]*$/.test(text);
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    const hasRequiredColumns = (file) => {
+        const requiredColumns = ['ID', 'log2FoldChange', 'pvalue'];
+      
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+      
+          reader.onload = (event) => {
+            const text = event.target.result;
+            const [headerLine] = text.split(/\r?\n/);
+            console.log("header line:", headerLine);
+      
+            const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            console.log("parsed headers:", headers);
+      
+            const hasAll = requiredColumns.every(col => headers.includes(col));
+            console.log("hasAll:", hasAll);
+            resolve(hasAll);
+          };
+      
+          reader.onerror = (error) => reject(error);
+      
+          const blob = file.slice(0, 1024);
+          reader.readAsText(blob);
+        });
+      };
 
     const onHandleFileDrop = async (e) => {
-        setLoading(true);
-        setErrorMessage("");
-
+        validation.resetValidationErrors();
         const file = e.dataTransfer.files[0];
-    
+
+        if (!file) {
+            const message = "No file was provided";
+            validation.setValidationError('gseaFile', message);
+            return {valid: false, message: message};
+        }
+
         try {
-            if (!file) {
-                throw new Error("No file provided for upload");
+            const valid = await hasRequiredColumns(file);
+            if (!valid) {
+                const message = "Input CSV requires header with: [ ID, log2FoldChange, and pvalue ] columns";
+                validation.setValidationError('gseaFile', message);
+                return {valid: false, message: message};
             }
+        } catch (err) {
+            const message = "Unable to read file header line";
+            validation.setValidationError('gseaFile', message);
+            return {valid: false, message: message};
+        }
+      
+
+        try {
+            setLoading(true);
+            setErrorMessage("");
         
             const formData = new FormData();
             formData.append("file", file);
@@ -95,9 +143,6 @@ export const useWormCatGSEAProcessor = () => {
     
 
     const onClickRunGSEA = async () => {
-        console.log("in handleGSEASubmit")
-        validation.resetValidationErrors();
-        // Validate email
         if (validateFields()) return;
         
         setLoading(true);

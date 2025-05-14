@@ -7,7 +7,7 @@ export const useWormCatFields = (requiredGeneSet = false) => {
     const validation = useFieldValidation();
 
     // Basic form state
-    const [email, setEmail] = useState("daniel.higgins@umassmed.edu");
+    const [email, setEmail] = useState("daniel.higgins@gatech.edu");
     const [annotationType, setAnnotationType] = useState(ANNOTATION_OPTIONS[0].value);
     const [significanceMethod, setSignificanceMethod] = useState(SIGNIFICANCE_METHODS[0].value);
     const [significanceThreshold, setSignificanceThreshold] = useState("0.05");
@@ -23,14 +23,18 @@ export const useWormCatFields = (requiredGeneSet = false) => {
         validation.resetValidationErrors();
 
         // Validate email
-        if (!email) {
+        if (email) {
+            if(!isValidEmail(email)){
+                newErrors.email = "Email format is not valid";
+            }
+        } else {
             newErrors.email = "Email is required";
         }
 
         // Validate significanceThreshold threshold
         const thresholdValue = parseFloat(significanceThreshold);
         if (isNaN(thresholdValue) || thresholdValue <= 0 || thresholdValue > 1) {
-            newErrors.significanceThreshold = "Statistical domain must be a number > 0 and ≤ 1";
+            newErrors.significanceThreshold = "Significance Threshold must be a number > 0 and ≤ 1";
         }
 
         // Validate analysis title (if provided)
@@ -72,13 +76,17 @@ export const useWormCatFields = (requiredGeneSet = false) => {
 
     // Utility function to check ASCII characters
     const isASCII = (text) => /^[\x09\x0A\x0D\x20-\x7E]*$/.test(text);
-
-
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    
     const isValidGeneSet = (text) => {
         if (!text.trim()) {
-            return { valid: false, message: "Gene set cannot be empty" };
+            return { valid: false, message: "Gene Set cannot be empty" };
         }
         
+        if(!isASCII(text)){
+            return { valid: false, message: "Gene Set must contain only text characters" };
+        }
+
         // Split input into non-empty trimmed lines
         const lines = text
             .split("\n")
@@ -87,14 +95,14 @@ export const useWormCatFields = (requiredGeneSet = false) => {
         
         // Rule 1: At least 2 rows
         if (lines.length < 2) {
-            return { valid: false, message: "Gene set must have at least 2 entries" };
+            return { valid: false, message: "Gene Set must have at least 2 entries" };
         }
         
         // Rule 2: Each line ≤ 20 characters
         if (lines.some(line => line.length > 20)) {
             return { 
             valid: false, 
-            message: "Some entries exceed 20 characters in length" 
+            message: "Some lines exceed 20 characters (only one Gene Id per line)" 
             };
         }
         
@@ -108,7 +116,7 @@ export const useWormCatFields = (requiredGeneSet = false) => {
         if (!isConsistent) {
             return { 
             valid: false, 
-            message: "The first two gene IDs must use the same format" 
+            message: "The first two Gene Ids must use the same format" 
             };
         }
         
@@ -124,12 +132,9 @@ export const useWormCatFields = (requiredGeneSet = false) => {
             reader.onload = (event) => {
                 const text = event.target.result;
                 // Check if text contains only ASCII characters
-                if (!isASCII(text)) {
-                    resolve({
-                    valid: false,
-                    text: null,
-                    message: "Error: File contains non-text data. Please use text characters only."
-                    });
+                const isValidGeneSetResult = isValidGeneSet(text);
+                if (!isValidGeneSetResult.valid) {
+                    resolve(isValidGeneSetResult);
                 } else {
                     resolve({
                     valid: true,
