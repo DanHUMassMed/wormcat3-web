@@ -1,7 +1,7 @@
 import axios, {isCancel, AxiosError} from 'axios';
 
-const BASE_URL = 'http://localhost:8000';
-const API_TIMEOUT_MS = 15000;
+const BASE_URL = process.env.REACT_APP_FASTAPI_BASE_URL;
+const API_TIMEOUT_MS = process.env.REACT_APP_FASTAPI_TIMEOUT_MS;
 
 export const apiRequest = async (method, endpoint, data = null, config = null) => {
   try {

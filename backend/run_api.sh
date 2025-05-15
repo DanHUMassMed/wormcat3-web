@@ -24,7 +24,7 @@ ensure_conda_env() {
 
 ensure_conda_env wormcat3-web
 
-export WORMCAT_OUT_PATH="/Users/dan/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
+export WORMCAT_OUT_PATH="${HOME}/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
 
 if [ -n "$1" ]; then
     export LOG_LEVEL=$1

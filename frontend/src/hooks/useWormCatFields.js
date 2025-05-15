@@ -7,7 +7,7 @@ export const useWormCatFields = (requiredGeneSet = false) => {
     const validation = useFieldValidation();
 
     // Basic form state
-    const [email, setEmail] = useState("daniel.higgins@gatech.edu");
+    const [email, setEmail] = useState("");
     const [annotationType, setAnnotationType] = useState(ANNOTATION_OPTIONS[0].value);
     const [significanceMethod, setSignificanceMethod] = useState(SIGNIFICANCE_METHODS[0].value);
     const [significanceThreshold, setSignificanceThreshold] = useState("0.05");

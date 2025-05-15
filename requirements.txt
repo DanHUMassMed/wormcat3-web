@@ -8,3 +8,4 @@ redis
 python-multipart
 openpyxl
 gunicorn
+python-dotenv

@@ -24,9 +24,9 @@ ensure_conda_env() {
 
 ensure_conda_env wormcat3-web
 
-if [ "$1" == "build" ]; then
+if [ "$1" == "dev" ]; then
+    npm run start
+else
     npm run build
     node server.js
-else
-    npm run start
 fi

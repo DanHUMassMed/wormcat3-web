@@ -99,7 +99,7 @@ export const useWormCatBatchProcessor = (fields) => {
         }
 
         // Create new WebSocket connection
-        const ws = new WebSocket(`ws://localhost:8000/wormcat3/ws/${taskId}`);
+        const ws = new WebSocket(`${process.env.REACT_APP_FASTAPI_BASE_WS}/wormcat3/ws/${taskId}`);
         setWebsocket(ws);
 
         ws.onopen = () => {
