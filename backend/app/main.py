@@ -7,8 +7,7 @@ import debugpy
 from app.routers import enrichment_router, batch_router, gsea_router
 
 load_dotenv() 
-react_app_url = os.getenv("REACT_APP_URL", "http://localhost")
-react_app_port = os.getenv("REACT_APP_PORT", "3000")
+react_app_url = os.getenv("REACT_APP_URL", "http://localhost:9000")
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "FALSE")
 if ACTIVATE_DEBUG=="TRUE":
@@ -25,8 +24,7 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        f"http://127.0.0.1:{react_app_port}",  # Allows React app using 127.0.0.1
-        f"{react_app_url}:{react_app_port}"
+        f"{react_app_url}"
     ],  # Allows React app to make requests
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
