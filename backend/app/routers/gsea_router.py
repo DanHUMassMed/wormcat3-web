@@ -8,12 +8,16 @@ from wormcat3.file_util import zip_dir
 from typing import Any
 import json
 from pathlib import Path
-from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path
+from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path,log_users
+import inspect
+
 
 router = APIRouter()
 
 @router.post("/perform_gsea_analysis", response_model=GSEAResponse)
 async def perform_gsea_analysis(request: Request):
+    method_name = inspect.currentframe().f_code.co_name
+    print(f"{method_name} called")
     # Note: Automatically parsing the request into a pydantic model 
     # produces obscure and difficult to interpret errors on failure
     # Manually parsing is far more transparent and easier to debug
@@ -21,6 +25,7 @@ async def perform_gsea_analysis(request: Request):
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
         print(parsed_body)
+        log_users(method_name, parsed_body)
         gsea_request = GSEARequest(**parsed_body)
     except json.JSONDecodeError as e:
         return GSEAResponse(

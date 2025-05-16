@@ -187,7 +187,7 @@ def trace(logger):
             
 
 
-        # Check if the function is asynchronous and choose the appropriate wrapper
+        # Check if the function is asynchronous then choose the appropriate wrapper
         if inspect.iscoroutinefunction(func):
             return async_wrapper
         else:

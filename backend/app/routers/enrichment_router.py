@@ -7,12 +7,15 @@ from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
 from typing import Any
 import json
-from app.utils.file_utility import WORMCAT_OUT_PATH
+import inspect
+from app.utils.file_utility import WORMCAT_OUT_PATH,log_users
 
 router = APIRouter()
 
 @router.post("/analyze_and_visualize_enrichment", response_model=EnrichmentResponse)
 async def analyze_and_visualize_enrichment(request: Request):
+    method_name = inspect.currentframe().f_code.co_name
+    print(f"{method_name} called")
     # Note: Automatically parsing the request into a pydantic model 
     # produces obscure and difficult to interpret errors on failure
     # Manually parsing is far more transparent and easier to debug
@@ -20,6 +23,7 @@ async def analyze_and_visualize_enrichment(request: Request):
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
         print(parsed_body)
+        log_users(method_name, parsed_body)
         enrichment_request = EnrichmentRequest(**parsed_body)
     except json.JSONDecodeError as e:
         return EnrichmentResponse(

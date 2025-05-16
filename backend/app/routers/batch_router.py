@@ -1,19 +1,15 @@
-import os
-from fastapi import APIRouter, HTTPException, BackgroundTasks,UploadFile, File, Form, WebSocket, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, HTTPException, UploadFile, File, WebSocket, Request
 from pydantic import BaseModel
 from pydantic import ValidationError
-from datetime import datetime
-from typing import Optional, Dict, Any, Union
+from typing import Optional
 import uuid
 import json
-from pathlib import Path
 import redis
 import asyncio
+import inspect
 from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
 from app.tasks.celery_tasks import run_and_email_task, run_and_wait_task
-from app.utils.file_utility import get_upload_dir_path
+from app.utils.file_utility import get_upload_dir_path,log_users
 
 router = APIRouter()
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -47,17 +43,18 @@ async def upload_file(file: UploadFile = File(...)):
 
 @router.post("/run_and_email")
 async def run_and_email(request: Request):
-    print("run_and_email called")
+    method_name = inspect.currentframe().f_code.co_name
+    print(f"{method_name} called")
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
         print(parsed_body)
+        log_users(method_name, parsed_body)
         enrichment_request = EnrichmentRequest(**parsed_body)
     except json.JSONDecodeError as e:
         return EnrichmentResponse(
             status_code="400",
-            message=f"Invalid JSON format: {str(e)}",
-        )
+            message=f"Invalid JSON format: {str(e)}",)
     except ValidationError as e:
         error_messages = "; ".join(
             [f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in e.errors()]
@@ -85,11 +82,13 @@ async def run_and_email(request: Request):
         
 @router.post("/run_and_wait")
 async def run_and_wait(request: Request):
-    print("run_and_wait called")
+    method_name = inspect.currentframe().f_code.co_name
+    print(f"{method_name} called")
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
         print(parsed_body)
+        log_users(method_name, parsed_body)
         enrichment_request = EnrichmentRequest(**parsed_body)
     except json.JSONDecodeError as e:
         return EnrichmentResponse(

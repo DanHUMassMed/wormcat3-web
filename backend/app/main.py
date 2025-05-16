@@ -24,14 +24,14 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        f"{react_app_url}"
+        f"{react_app_url}",
     ],  # Allows React app to make requests
     allow_credentials=True,
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
 )
 
-
+print(f"CORS allow_origins: {react_app_url}")
 app.include_router(enrichment_router.router, prefix="/wormcat3", tags=["Enrichment"])
 app.include_router(batch_router.router, prefix="/wormcat3", tags=["Batch"])
 app.include_router(gsea_router.router, prefix="/wormcat3", tags=["GSEA"])

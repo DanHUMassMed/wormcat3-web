@@ -1,11 +1,16 @@
 #!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_PATH="$HOME/var/log"
 
 PORT_IN_USE=""
 PROCESS_ID=`ps auxww|grep bin/celery|grep -v grep| awk '{print $2}' | xargs`
 PROCESS_NAME="Celery Server"
-PROCESS_EXE="./run_celery.sh"
-#ps -p 53803 -o command
+PROCESS_EXE="${SCRIPT_DIR}/run_celery.sh"
+LOG_FILE="$LOG_PATH/celery.log"
 
+LOG_BASE="$(basename "$LOG_FILE" .log)"
+TIMESTAMP=$(date +"%Y-%m-%d_%H%M-%S")
+BACKUP_FILE="$LOG_PATH/${LOG_BASE}_$TIMESTAMP.log"
 
 action=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
@@ -22,7 +27,12 @@ start() {
             sleep 5
         fi
         echo "Starting ${PROCESS_NAME} ..."
-        nohup ${PROCESS_EXE} > /dev/null 2>&1 &
+        mkdir -p "$LOG_PATH"
+        if [ -f "$LOG_FILE" ]; then
+            mv "$LOG_FILE" "$BACKUP_FILE"
+        fi
+        nohup ${PROCESS_EXE} > "$LOG_FILE" 2>&1 &
+        sleep 5
 	     
 	else
    	    echo "${PROCESS_NAME} is already running with process ID:[${PROCESS_ID}]"
@@ -49,6 +59,8 @@ status() {
         echo "${PROCESS_NAME} is not running."
         if [ -n "${PORT_IN_USE}" ]; then
             echo "However ${PROCESS_NAME} Port is blocked by PID:$PORT_IN_USE"
+            BLOCKING_PROCESS="$(ps -p "${PORT_IN_USE}" -o command)"
+            echo "Command: $BLOCKING_PROCESS"
         fi
     else
         echo "${PROCESS_NAME} is running with process ID:[${PROCESS_ID}]."
