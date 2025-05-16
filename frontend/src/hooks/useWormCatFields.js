@@ -98,11 +98,14 @@ export const useWormCatFields = (requiredGeneSet = false) => {
             return { valid: false, message: "Gene Set must have at least 2 entries" };
         }
         
-        // Rule 2: Each line ≤ 20 characters
-        if (lines.some(line => line.length > 20)) {
-            return { 
-            valid: false, 
-            message: "Some lines exceed 20 characters (only one Gene Id per line)" 
+        // Rule 2: Each line ≤ 25 characters
+        const longLines = lines.filter(line => line.length > 25);
+
+        if (longLines.length > 0) {
+            const exampleSnippet = longLines[0].slice(0, 25);
+            return {
+                valid: false,
+                message: `Error: ${longLines.length} line(s) exceed 25 characters. Example: "${exampleSnippet}..."`
             };
         }
         

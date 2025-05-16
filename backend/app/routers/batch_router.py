@@ -111,7 +111,6 @@ async def run_and_wait(request: Request):
         print(f"after run_and_email_task.apply_async")
         return EnrichmentResponse(run_id=task_id)
     except Exception as e:
-        print("run_and_email failed!!")
         print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 

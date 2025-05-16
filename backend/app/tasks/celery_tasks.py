@@ -10,6 +10,8 @@ from wormcat3 import Wormcat
 from wormcat3.file_util import zip_dir
 from wormcat3.constants import PAdjustMethod
 from wormcat3.wormcat_excel import WormcatExcel
+from wormcat3.gsea_analyzer import GSEAAnalyzer
+from wormcat3.annotations_manger import AnnotationsManager
 from wormcat3 import file_util
 from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path
 
@@ -120,4 +122,48 @@ def run_and_email_task(self, enrichment_request: dict, task_id: str):
         print(str(e))
 
 
+@celery.task(bind=True)
+def run_gsea_and_wait_task(self, gsea_request: dict, task_id: str):
+    print("run_gsea_and_wait_task called")
+    percent_complete = 15
+    wormcat_base = Wormcat(working_dir_path=WORMCAT_OUT_PATH, annotation_file_name=gsea_request['annotation_file_name'], title=gsea_request['title'])
+        
+    try:
+        gsea_file_path = f"{get_upload_dir_path()}/{gsea_request['gene_set']}"
+        deseq2_df = file_util.read_deseq2_file(gsea_file_path)
 
+        gsea_analyzer = GSEAAnalyzer(wormcat_base.working_dir_path)
+        ranked_list_df = gsea_analyzer.create_ranked_list(deseq2_df)
+        
+        msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":"Creating ranked list"})
+        redis_client.publish(f"task:{task_id}", msg)
+        time.sleep(0.3)
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return
+
+    increment =  25
+    for category in [1,2,3]:
+        percent_complete += increment
+        msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":f"Processing Category {category} sheet"})
+        redis_client.publish(f"task:{task_id}", msg)
+        time.sleep(0.3)
+        
+        gmt_format = wormcat_base.annotation_manager.category_to_gmt_format(category)
+        results_name = f"gsea_category_{category}_{wormcat_base.run_number}"
+        results_df = gsea_analyzer.run_preranked_gsea(ranked_list_df , gmt_format, results_name)
+        # Save the results_df
+        gsea_category_path = Path(wormcat_base.working_dir_path) / f"{results_name}.csv"
+        results_df.to_csv(gsea_category_path, index=False)
+
+
+    percent_complete += 10
+    msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":"Summarizing Analysis Results"})
+    redis_client.publish(f"task:{task_id}", msg)
+    time.sleep(0.3)
+    
+    output_zip_path = zip_dir(wormcat_base.working_dir_path)
+    zip_file_name = Path(output_zip_path).name
+    msg = json.dumps({"state": "COMPLETED", "result_url": zip_file_name, "message":"GSEA completed successfully"})
+    redis_client.publish(f"task:{task_id}", msg )
+    return {"status": "completed"}

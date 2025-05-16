@@ -211,7 +211,7 @@ export default function WormCatEnrichmentForm() {
             required
             disabled={isFormDisabled}
             />
-          <p className="text-xs text-gray-500 mt-1">
+          <p className={`text-xs mt-1 ${validation.validationErrors.geneSet ? 'text-red-500' : 'text-gray-500'}`}>
             Note: Each row should contain a single gene ID (either Sequence ID or WBGene format)
           </p>
         </FormField>

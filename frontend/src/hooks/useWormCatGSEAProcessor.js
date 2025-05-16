@@ -4,6 +4,7 @@ import { upload_file } from "../api/enrichmentAPI";
 import { ANNOTATION_OPTIONS } from "../components/constants";
 import { useNavigate } from "react-router-dom";
 import { perform_gsea_analysis } from "../api/enrichmentAPI";
+import { useTaskWebSocket } from "./useTaskWebSocket";
 
 
 export const useWormCatGSEAProcessor = () => {
@@ -11,7 +12,7 @@ export const useWormCatGSEAProcessor = () => {
     const validation = useFieldValidation();
 
     // Basic form state
-    const [email, setEmail] = useState("daniel.higgins@umassmed.edu");
+    const [email, setEmail] = useState("");
     const [annotationType, setAnnotationType] = useState(ANNOTATION_OPTIONS[0].value);
     const [analysisTitle, setAnalysisTitle] = useState("");
     const [gseaFileName, setGSEAFileName] = useState("");
@@ -19,6 +20,11 @@ export const useWormCatGSEAProcessor = () => {
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
 
+    const [taskId, setTaskId] = useState(null);
+    const [taskStatus, setTaskStatus] = useState('Idle');
+    const [isRunning, setIsRunning] = useState(false);
+    const { progress, progressMessage, resultUrl } = useTaskWebSocket(taskId, setTaskStatus, setIsRunning);
+    
     // Form validation logic
     const validateFields = () => {
         const newErrors = {};
@@ -145,8 +151,8 @@ export const useWormCatGSEAProcessor = () => {
     const onClickRunGSEA = async () => {
         if (validateFields()) return;
         
-        setLoading(true);
-        setErrorMessage("");
+        setIsRunning(true);
+        setTaskStatus('Starting');
         
         // Prepare request payload
         const gseaRequest = {
@@ -157,24 +163,21 @@ export const useWormCatGSEAProcessor = () => {
         };
 
         try {
-        const response_data = await perform_gsea_analysis(gseaRequest);
+            const response_data = await perform_gsea_analysis(gseaRequest);
         
-        if (response_data?.run_id) {
-            navigate(`/gsea_report/${response_data.run_id}`);
-        } else {
-            setErrorMessage("Analysis failed: no run ID returned from the server.");
-        }
+            if (response_data?.run_id) {
+                setTaskId(response_data.run_id);
+            } else {
+                setTaskStatus('FAILED');
+                setErrorMessage(`GSEA Analysis Failed: ${response_data.message}`)
+                setIsRunning(false);
+            }
         } catch (error) {
-        // Handle specific error types
-        if (error.name === "AbortError") {
-            setErrorMessage("Request timed out. Please try again later.");
-        } else {
-            setErrorMessage(`Error: ${error.message || "Failed to process analysis"}`);
-        }
-        console.error("Analysis error:", error);
-        } finally {
-        setLoading(false);
-        }
+            const message = error?.response?.data?.message || error?.message || String(error);
+            setErrorMessage(`Unexpected error: ${message}`);
+            setTaskStatus('FAILED');
+            setIsRunning(false);
+        } 
     };
 
   return {
@@ -195,6 +198,13 @@ export const useWormCatGSEAProcessor = () => {
 
     // File load
     onHandleFileDrop,
-    onClickRunGSEA
+    onClickRunGSEA,
+
+    //Task variables
+    taskStatus, 
+    isRunning,
+    progress, 
+    progressMessage, 
+    resultUrl
   };
 };

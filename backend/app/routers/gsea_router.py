@@ -9,6 +9,8 @@ from typing import Any
 import json
 from pathlib import Path
 from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path,log_users
+from app.tasks.celery_tasks import run_gsea_and_wait_task
+import uuid
 import inspect
 
 
@@ -43,17 +45,12 @@ async def perform_gsea_analysis(request: Request):
             run_id=""
         )
     
+    
     try:
-        wormcat = Wormcat(working_dir_path=WORMCAT_OUT_PATH, 
-                          title=gsea_request.title, 
-                          annotation_file_name=gsea_request.annotation_file_name, 
-                          email=gsea_request.email)
-        
-        input_file_path=f"{get_upload_dir_path()}/{gsea_request.gene_set}"
-        wormcat.perform_gsea_analysis(input_file_path)
-        zip_dir(wormcat.working_dir_path)
-        ret_val = GSEAResponse(run_id = wormcat.run_number)
-        return ret_val
-
+        task_id = str(uuid.uuid4())
+        run_gsea_and_wait_task.apply_async(kwargs={"gsea_request": gsea_request.model_dump(),"task_id":task_id})
+        return GSEAResponse(run_id=task_id)
     except Exception as e:
+        print("run_and_email failed!!")
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))

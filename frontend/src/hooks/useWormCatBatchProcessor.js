@@ -1,19 +1,18 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { run_and_email, run_and_wait, upload_file } from "../api/enrichmentAPI";
+import { useTaskWebSocket } from "./useTaskWebSocket";
 
 export const useWormCatBatchProcessor = (fields) => {
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [excelFileName, setExcelFileName] = useState("");
 
-    const [websocket, setWebsocket] = useState(null);
+    const [excelFileName, setExcelFileName] = useState("");
+    const [submissionType, setSubmissionType] = useState("");
+
     const [taskId, setTaskId] = useState(null);
-    const [progress, setProgress] = useState(0);
-    const [progressMessage, setProgressMessage] = useState('');
     const [taskStatus, setTaskStatus] = useState('Idle');
     const [isRunning, setIsRunning] = useState(false);
-    const [submissionType, setSubmissionType] = useState("");
-    const [resultUrl, setResultUrl] = useState(null);
+    const { progress, progressMessage, resultUrl } = useTaskWebSocket(taskId, setTaskStatus, setIsRunning);
 
     const onHandleFileDrop = async (e) => {
         fields.validation.resetValidationErrors();
@@ -79,74 +78,6 @@ export const useWormCatBatchProcessor = (fields) => {
       });
     }
 
-      // Effect to handle WebSocket connection and cleanup
-      useEffect(() => {
-        // Clean up WebSocket connection when component unmounts
-        return () => {
-          if (websocket) {
-            websocket.close();
-          }
-        };
-      }, []);
-
-      // Effect to handle WebSocket messages when taskId changes
-      useEffect(() => {
-        if (!taskId) return;
-
-        // Close previous connection if exists
-        if (websocket) {
-          websocket.close();
-        }
-
-        // Create new WebSocket connection
-        const ws = new WebSocket(`${process.env.REACT_APP_FASTAPI_BASE_WS}/wormcat3/ws/${taskId}`);
-        setWebsocket(ws);
-
-        ws.onopen = () => {
-          console.log('WebSocket connected');
-        };
-
-        ws.onmessage = (event) => {
-          const data = JSON.parse(event.data);
-          console.log('WebSocket message:::', data);
-          
-          if (data.progress !== undefined) {
-            setProgress(data.progress);
-          }
-          if (data.message !== undefined) {
-            setProgressMessage(data.message);
-          }
-          
-          if (data.state) {
-            setTaskStatus(data.state);
-            
-            if (data.state === 'COMPLETED') {
-              setIsRunning(false);
-              if (data.result_url) {
-                setResultUrl(data.result_url);
-              }
-              ws.close();
-            } else if (data.state === 'FAILED') {
-              setIsRunning(false);
-              ws.close();
-            }
-          }
-        };
-
-        ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
-          setTaskStatus('Error');
-          setIsRunning(false);
-        };
-
-        ws.onclose = () => {
-          console.log('WebSocket disconnected');
-        };
-
-        return () => {
-          ws.close();
-        };
-      }, [taskId]);
 
       const handleRunAndWait = async () => {
         if (fields.validateFields()) return;
@@ -158,8 +89,8 @@ export const useWormCatBatchProcessor = (fields) => {
 
         setIsRunning(true);
         // Reset states
-        setProgress(0);
-        setResultUrl(null);
+        // setProgress(0);
+        // setResultUrl(null);
         setTaskStatus('Starting');
         setSubmissionType("run");
                   
