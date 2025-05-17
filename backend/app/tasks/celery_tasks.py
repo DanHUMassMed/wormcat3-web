@@ -1,19 +1,25 @@
-import time
-import os
-import redis
 import json
+import os
 import time
-from celery import Celery
-from app.utils.email_utility import email_results
 from pathlib import Path
-from wormcat3 import Wormcat
-from wormcat3.file_util import zip_dir
-from wormcat3.constants import PAdjustMethod
-from wormcat3.wormcat_excel import WormcatExcel
-from wormcat3.gsea_analyzer import GSEAAnalyzer
-from wormcat3.annotations_manger import AnnotationsManager
-from wormcat3 import file_util
+
+import redis
+from app.utils.email_utility import email_results
 from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path
+from celery import Celery
+from dotenv import load_dotenv
+from wormcat3 import Wormcat, file_util
+from wormcat3.constants import PAdjustMethod
+from wormcat3.file_util import zip_dir
+from wormcat3.gsea_analyzer import GSEAAnalyzer
+from wormcat3.wormcat_excel import WormcatExcel
+
+load_dotenv() 
+
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
 
 celery = Celery(
     "worker",
@@ -42,7 +48,6 @@ def ensure_float(value):
     
 @celery.task(bind=True)
 def run_and_wait_task(self, enrichment_request: dict, task_id: str):
-    print("run_and_wait_task called")
     percent_complete = 10
     
     wormcat_base = Wormcat(working_dir_path=WORMCAT_OUT_PATH, annotation_file_name=enrichment_request['annotation_file_name'], title=enrichment_request['title'])
@@ -58,7 +63,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
         redis_client.publish(f"task:{task_id}", msg)
         time.sleep(0.3)
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.error(f"Error: {str(e)}")
         return
 
     # Look for CSV files
@@ -75,7 +80,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
                                                      p_adjust_method = PAdjustMethod.from_str(enrichment_request['p_adjust_method']), 
                                                      p_adjust_threshold = ensure_float(enrichment_request['p_adjust_threshold']))
     else:
-        print(f"Directory doesn't contain any CSV files")
+        logger.warning(f"Directory doesn't contain any CSV files")
         return 
 
     percent_complete += 10
@@ -94,10 +99,6 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
 
 @celery.task(bind=True)
 def run_and_email_task(self, enrichment_request: dict, task_id: str):
-    print("run_and_email_task called")
-    print(enrichment_request)
-    print(f"wormcat out path: {WORMCAT_OUT_PATH}")
-    print(f"get_upload_dir_path: {get_upload_dir_path()}")
 
     try:
         wormcat = Wormcat(working_dir_path=WORMCAT_OUT_PATH, 
@@ -106,7 +107,6 @@ def run_and_email_task(self, enrichment_request: dict, task_id: str):
                           email=enrichment_request['email'])
         
         input_file_path=f"{get_upload_dir_path()}/{enrichment_request['gene_set']}"
-        print(f"input_file_path: {input_file_path}")
         wormcat.wormcat_batch(
                     input_data = input_file_path, 
                     background_input = enrichment_request['background'], 
@@ -114,17 +114,14 @@ def run_and_email_task(self, enrichment_request: dict, task_id: str):
                     p_adjust_threshold = ensure_float(enrichment_request['p_adjust_threshold']))
 
         output_zip_path = zip_dir(wormcat.working_dir_path)
-        print(f"email_results: {enrichment_request['email']}")
-        print(f"output_zip_path: {output_zip_path}")
         email_results(enrichment_request['email'], output_zip_path)
     except Exception as e:
-        print("run_and_email_task failed!!")
-        print(str(e))
+        logger.error("run_and_email_task failed!!")
+        logger.error(str(e))
 
 
 @celery.task(bind=True)
 def run_gsea_and_wait_task(self, gsea_request: dict, task_id: str):
-    print("run_gsea_and_wait_task called")
     percent_complete = 15
     wormcat_base = Wormcat(working_dir_path=WORMCAT_OUT_PATH, annotation_file_name=gsea_request['annotation_file_name'], title=gsea_request['title'])
         
@@ -139,7 +136,7 @@ def run_gsea_and_wait_task(self, gsea_request: dict, task_id: str):
         redis_client.publish(f"task:{task_id}", msg)
         time.sleep(0.3)
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.error(f"Error: {str(e)}")
         return
 
     increment =  25

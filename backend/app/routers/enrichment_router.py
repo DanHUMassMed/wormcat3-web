@@ -1,28 +1,30 @@
+import inspect
+import json
+import logging
 import os
+
+from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
+from app.utils.file_utility import WORMCAT_OUT_PATH, log_users
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
-from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
 from wormcat3 import Wormcat
 from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
-from typing import Any
-import json
-import inspect
-from app.utils.file_utility import WORMCAT_OUT_PATH,log_users
+
+logger = logging.getLogger()
+logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
 
 router = APIRouter()
 
 @router.post("/analyze_and_visualize_enrichment", response_model=EnrichmentResponse)
 async def analyze_and_visualize_enrichment(request: Request):
     method_name = inspect.currentframe().f_code.co_name
-    print(f"{method_name} called")
     # Note: Automatically parsing the request into a pydantic model 
     # produces obscure and difficult to interpret errors on failure
     # Manually parsing is far more transparent and easier to debug
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
-        print(parsed_body)
         log_users(method_name, parsed_body)
         enrichment_request = EnrichmentRequest(**parsed_body)
     except json.JSONDecodeError as e:
@@ -35,6 +37,7 @@ async def analyze_and_visualize_enrichment(request: Request):
         error_messages = "; ".join(
             [f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in e.errors()]
         )
+        logger.error(error_messages)
         return EnrichmentResponse(
             status_code="422",
             message=f"Validation error: {error_messages}",
@@ -57,4 +60,5 @@ async def analyze_and_visualize_enrichment(request: Request):
         return ret_val
 
     except Exception as e:
+        logger.error(str(e))
         raise HTTPException(status_code=500, detail=str(e))

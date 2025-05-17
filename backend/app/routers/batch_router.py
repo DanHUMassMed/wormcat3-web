@@ -1,15 +1,20 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, WebSocket, Request
-from pydantic import BaseModel
-from pydantic import ValidationError
-from typing import Optional
-import uuid
-import json
-import redis
 import asyncio
 import inspect
+import json
+import logging
+import os
+import uuid
+from typing import Optional
+
+import redis
 from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
 from app.tasks.celery_tasks import run_and_email_task, run_and_wait_task
-from app.utils.file_utility import get_upload_dir_path,log_users
+from app.utils.file_utility import get_upload_dir_path, log_users
+from fastapi import (APIRouter, File, HTTPException, Request, UploadFile,WebSocket)
+from pydantic import BaseModel, ValidationError
+
+logger = logging.getLogger()
+logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
 
 router = APIRouter()
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
@@ -44,11 +49,9 @@ async def upload_file(file: UploadFile = File(...)):
 @router.post("/run_and_email")
 async def run_and_email(request: Request):
     method_name = inspect.currentframe().f_code.co_name
-    print(f"{method_name} called")
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
-        print(parsed_body)
         log_users(method_name, parsed_body)
         enrichment_request = EnrichmentRequest(**parsed_body)
     except json.JSONDecodeError as e:
@@ -66,13 +69,11 @@ async def run_and_email(request: Request):
     
     try:
         task_id = str(uuid.uuid4())
-        print(f"before run_and_email_task.apply_async")
         run_and_email_task.apply_async(kwargs={"enrichment_request": enrichment_request.model_dump(),"task_id":task_id})
-        print(f"after run_and_email_task.apply_async")
         return EnrichmentResponse(run_id=task_id)
     except Exception as e:
-        print("run_and_email failed!!")
-        print(str(e))
+        logger.error("run_and_email failed!!")
+        logger.error(str(e))
         return EnrichmentResponse(
             status_code="500",
             message=f"Dispatch error: {str(e)}",
@@ -83,11 +84,9 @@ async def run_and_email(request: Request):
 @router.post("/run_and_wait")
 async def run_and_wait(request: Request):
     method_name = inspect.currentframe().f_code.co_name
-    print(f"{method_name} called")
     try:
         raw_body = await request.body()
         parsed_body = json.loads(raw_body)
-        print(parsed_body)
         log_users(method_name, parsed_body)
         enrichment_request = EnrichmentRequest(**parsed_body)
     except json.JSONDecodeError as e:
@@ -106,12 +105,11 @@ async def run_and_wait(request: Request):
     
     try:
         task_id = str(uuid.uuid4())
-        print(f"before run_and_email_task.apply_async")
         run_and_wait_task.apply_async(kwargs={"enrichment_request": enrichment_request.model_dump(),"task_id":task_id})
-        print(f"after run_and_email_task.apply_async")
         return EnrichmentResponse(run_id=task_id)
     except Exception as e:
-        print(str(e))
+        logger.error("run_and_email failed!!")
+        logger.error(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -125,7 +123,6 @@ async def websocket_endpoint(websocket: WebSocket, task_id: str):
     try:
         while True:
             message = pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
-            print(f"message: {message}")
             if message:
                 data = json.loads(message["data"])
                 await websocket.send_json(data)

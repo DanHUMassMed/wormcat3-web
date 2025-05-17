@@ -1,13 +1,10 @@
+import functools
+import inspect
+import logging
 import logging.config
 import os
 import sys
-import inspect
 import threading
-import logging
-
-import functools
-import inspect
-
 
 # Define TRACE level constant
 TRACE_LEVEL = 5

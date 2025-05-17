@@ -1,20 +1,26 @@
+import os
 import smtplib
-from socket import gaierror
-from email.mime.text import MIMEText
 import ssl
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from socket import gaierror
+
+from dotenv import load_dotenv
+
+load_dotenv() 
 import logging
-import os
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_LOGIN = "wormcat.emailer@gmail.com"
-SMTP_PASSWD = "irimdclrzuytkpja"  # App Password
+SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+SMTP_LOGIN = os.getenv("SMTP_LOGIN", "wormcat.emailer@gmail.com")
+SMTP_PASSWD = os.getenv("SMTP_PASSWD", "")
 
+if not SMTP_PASSWD:
+    raise RuntimeError("Set PASSWD in .env for proper usage")
 
 def email_results(receiver, the_file):
     index_of_sep = the_file.rfind(os.path.sep)
@@ -23,16 +29,20 @@ def email_results(receiver, the_file):
     subject = 'Wormcat Results for {}'.format(filename)
     sender = "wormcat@gmail.com"
     message_text = """
-    Please find attached the results of your run.
+Hello,
 
-    Please do NOT respond to this message as this email address is not monitored.
+Your WormCat run has completed. Please find the results attached.
 
-    Thank you for using wormcat.com!
+Note: This is an automated message — replies to this email are not monitored.
+
+If you’d like to get in touch, please visit wormcat.com for contact information.
+
+Thank you for using wormcat.com!
     """
     message = construct_message_with_attachment(subject, sender, receiver, message_text, the_file)
     send_message_ssl(sender, receiver, message)
-
-
+    
+    
 def construct_message_with_html(subject, sender, receiver, message_text=None, message_html=None):
     the_message = MIMEMultipart()
     the_message['Subject'] = subject

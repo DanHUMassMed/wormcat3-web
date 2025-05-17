@@ -1,6 +1,6 @@
 import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 WORMCAT_OUT_PATH = os.environ.get("WORMCAT_OUT_PATH")
 if not WORMCAT_OUT_PATH:
