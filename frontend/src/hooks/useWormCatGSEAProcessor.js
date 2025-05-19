@@ -60,7 +60,6 @@ export const useWormCatGSEAProcessor = () => {
         );
         
         const hasErrors = Object.keys(newErrors).length > 0;
-        console.log("Validation errors:", newErrors);
         
         return hasErrors;
     };
@@ -78,13 +77,10 @@ export const useWormCatGSEAProcessor = () => {
           reader.onload = (event) => {
             const text = event.target.result;
             const [headerLine] = text.split(/\r?\n/);
-            console.log("header line:", headerLine);
       
             const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            console.log("parsed headers:", headers);
       
             const hasAll = requiredColumns.every(col => headers.includes(col));
-            console.log("hasAll:", hasAll);
             resolve(hasAll);
           };
       

@@ -69,7 +69,6 @@ export const useWormCatFields = (requiredGeneSet = false) => {
         );
         
         const hasErrors = Object.keys(newErrors).length > 0;
-        console.log("Validation errors:", newErrors);
         
         return hasErrors;
     };

@@ -16,18 +16,21 @@ logger = logging.getLogger()
 logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
 
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_LOGIN = os.getenv("SMTP_LOGIN", "wormcat.emailer@gmail.com")
+SMTP_LOGIN = os.getenv("SMTP_LOGIN", "")
 SMTP_PASSWD = os.getenv("SMTP_PASSWD", "")
 
 if not SMTP_PASSWD:
     raise RuntimeError("Set PASSWD in .env for proper usage")
+
+if not SMTP_LOGIN:
+    raise RuntimeError("Set SMTP_LOGIN in .env for proper usage")
 
 def email_results(receiver, the_file):
     index_of_sep = the_file.rfind(os.path.sep)
     filename = the_file[index_of_sep + 1:-4]
 
     subject = 'Wormcat Results for {}'.format(filename)
-    sender = "wormcat@gmail.com"
+    sender = "wormcat.emailer@gmail.com"
     message_text = """
 Hello,
 
@@ -114,8 +117,8 @@ def send_message_ssl(sender, receiver, message):
 
 
 def main():
-    sender = "wormcat@gmail.com"
-    receiver = "daniel.higgins@yahoo.com"
+    sender = "wormcat.emailer@gmail.com"
+    receiver = "dphiggins@gmail.com"
     the_file = "README.md.zip"
     html = """<html> <body> <p>Hi,<br> Check out our new search engine:</p> 
     <p><a href="http://google.com">Google</a></p> 

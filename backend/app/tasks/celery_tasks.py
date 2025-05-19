@@ -130,6 +130,15 @@ def run_gsea_and_wait_task(self, gsea_request: dict, task_id: str):
         deseq2_df = file_util.read_deseq2_file(gsea_file_path)
 
         gsea_analyzer = GSEAAnalyzer(wormcat_base.working_dir_path)
+        removed_rows_df, deseq2_df = gsea_analyzer.clean_input_data(deseq2_df)
+
+        # Save the removed rows
+        if not removed_rows_df.empty:            
+            removed_file_name = f"genes_removed_from_analysis_{wormcat_base.run_number}.csv"
+            removed_path = Path(wormcat_base.working_dir_path) / removed_file_name
+            removed_rows_df.to_csv(removed_path, index=False)
+
+
         ranked_list_df = gsea_analyzer.create_ranked_list(deseq2_df)
         
         msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":"Creating ranked list"})
@@ -139,6 +148,9 @@ def run_gsea_and_wait_task(self, gsea_request: dict, task_id: str):
         logger.error(f"Error: {str(e)}")
         return
 
+    first_3_ids = ranked_list_df['Gene'].head(3).tolist()
+    gene_type = wormcat_base.annotation_manager.get_gene_id_type(first_3_ids)
+    
     increment =  25
     for category in [1,2,3]:
         percent_complete += increment
@@ -146,7 +158,7 @@ def run_gsea_and_wait_task(self, gsea_request: dict, task_id: str):
         redis_client.publish(f"task:{task_id}", msg)
         time.sleep(0.3)
         
-        gmt_format = wormcat_base.annotation_manager.category_to_gmt_format(category)
+        gmt_format = wormcat_base.annotation_manager.category_to_gmt_format(category, id_col_nm=gene_type)
         results_name = f"gsea_category_{category}_{wormcat_base.run_number}"
         results_df = gsea_analyzer.run_preranked_gsea(ranked_list_df , gmt_format, results_name)
         # Save the results_df

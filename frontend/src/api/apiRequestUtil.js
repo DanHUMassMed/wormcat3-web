@@ -44,8 +44,6 @@ export const apiRequest = async (method, endpoint, data = null, config = null) =
         console.error('Other error occurred:', error.message);
       }
       throw error;
-  } finally {
-    console.log("Finally from apiRequest");
-  }
+  } 
 };
 

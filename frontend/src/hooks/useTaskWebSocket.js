@@ -31,12 +31,11 @@ export function useTaskWebSocket(taskId, setTaskStatus, setIsRunning) {
         setWebsocket(ws);
 
         ws.onopen = () => {
-          console.log('WebSocket connected');
+          //Handle on open of WS
         };
 
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
-          console.log('WebSocket message:::', data);
           
           if (data.progress !== undefined) {
             setProgress(data.progress);
@@ -68,7 +67,7 @@ export function useTaskWebSocket(taskId, setTaskStatus, setIsRunning) {
         };
 
         ws.onclose = () => {
-          console.log('WebSocket disconnected');
+          //Handle on close of WS
         };
 
         return () => {
