@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export function useTaskWebSocket(taskId, setTaskStatus, setIsRunning) {
+export function useTaskWebSocket(taskId, setTaskStatus, setIsRunning, setErrorMessage) {
     const [websocket, setWebsocket] = useState(null);
     const [progress, setProgress] = useState(0);
     const [progressMessage, setProgressMessage] = useState('');
@@ -55,6 +55,12 @@ export function useTaskWebSocket(taskId, setTaskStatus, setIsRunning) {
               ws.close();
             } else if (data.state === 'FAILED') {
               setIsRunning(false);
+              console.log("In the failed WS section")
+              if (data.message !== undefined) {
+                setErrorMessage(data.message);
+              }else{
+                setErrorMessage("Process Execution failed")
+              }
               ws.close();
             }
           }

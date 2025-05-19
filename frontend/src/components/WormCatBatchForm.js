@@ -60,7 +60,7 @@ export default function WormCatBatchForm() {
 
 
   // Form is disabled when submitting, running, or completed and waiting for download
-  const isFormDisabled = loading || isRunning || taskStatus === 'COMPLETED'|| taskStatus === 'EMAILED';
+  const isFormDisabled = loading || isRunning || taskStatus === 'COMPLETED'|| taskStatus === 'FAILED'|| taskStatus === 'EMAILED';
 
   // Progress bar variants for animation
   const progressBarVariants = {

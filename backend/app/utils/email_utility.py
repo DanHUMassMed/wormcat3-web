@@ -45,6 +45,26 @@ Thank you for using wormcat.com!
     message = construct_message_with_attachment(subject, sender, receiver, message_text, the_file)
     send_message_ssl(sender, receiver, message)
     
+def email_error_results(receiver, run_number, error_message):
+
+    subject = f"Wormcat ERROR while executing {run_number}"
+    sender = "wormcat.emailer@gmail.com"
+    message_text = f"""
+Hello,
+
+We are sorry to inform you that your WormCat run has failed to complete. Please find the results error below.
+
+{error_message}
+
+Note: This is an automated message — replies to this email are not monitored.
+
+If you’d like to get in touch, please visit wormcat.com for contact information.
+
+Thank you for using wormcat.com!
+    """
+    message = construct_message_with_html(subject, sender, receiver, message_text)
+    send_message_ssl(sender, receiver, message)
+    
     
 def construct_message_with_html(subject, sender, receiver, message_text=None, message_html=None):
     the_message = MIMEMultipart()

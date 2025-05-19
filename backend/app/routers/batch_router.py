@@ -128,6 +128,8 @@ async def websocket_endpoint(websocket: WebSocket, task_id: str):
                 await websocket.send_json(data)
                 if data.get("state") == "COMPLETED":
                     break
+                if data.get("state") == "FAILED":
+                    break
             await asyncio.sleep(0.1)  # Yield control to the event loop
     finally:
         pubsub.unsubscribe(channel)

@@ -22,8 +22,6 @@ def log_users(method_name, log_data):
     p_adjust_method = log_data.get("p_adjust_method", "")
     p_adjust_threshold = log_data.get("p_adjust_threshold", "")
 
-    web_logs_dir_path = get_full_dir_path("../web_logs")
-
     header = "date_time,method_name,email,title,annotation_file_name,p_adjust_method,p_adjust_threshold"
 
     HOME = os.environ.get("HOME")

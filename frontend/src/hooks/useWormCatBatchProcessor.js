@@ -12,7 +12,7 @@ export const useWormCatBatchProcessor = (fields) => {
     const [taskId, setTaskId] = useState(null);
     const [taskStatus, setTaskStatus] = useState('Idle');
     const [isRunning, setIsRunning] = useState(false);
-    const { progress, progressMessage, resultUrl } = useTaskWebSocket(taskId, setTaskStatus, setIsRunning);
+    const { progress, progressMessage, resultUrl } = useTaskWebSocket(taskId, setTaskStatus, setIsRunning, setErrorMessage);
 
     const onHandleFileDrop = async (e) => {
         fields.validation.resetValidationErrors();
