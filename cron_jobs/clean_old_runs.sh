@@ -7,7 +7,7 @@ set -euo pipefail
 IFS=$'\n\t'
 
 # Configuration
-TARGET_DIR="/Users/dan/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
+TARGET_DIR="$HOME/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
 DAYS_OLD=7
 
 # Logging

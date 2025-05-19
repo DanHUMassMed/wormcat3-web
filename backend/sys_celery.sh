@@ -10,7 +10,8 @@ LOG_FILE="$LOG_PATH/celery.log"
 
 LOG_BASE="$(basename "$LOG_FILE" .log)"
 TIMESTAMP=$(date +"%Y-%m-%d_%H%M-%S")
-BACKUP_FILE="$LOG_PATH/${LOG_BASE}_$TIMESTAMP.log"
+#BACKUP_FILE="$LOG_PATH/${LOG_BASE}_$TIMESTAMP.log"
+BACKUP_FILE="$LOG_PATH/${LOG_BASE}.log.0"
 
 action=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
