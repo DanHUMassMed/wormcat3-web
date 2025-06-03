@@ -201,7 +201,7 @@ export default function WormCatEnrichmentForm() {
             id="gene-set-textarea-id"
             value={geneSetText}
             onChange={(e) => setGeneSetText(e.target.value)}
-            placeholder="Or paste regulated gene set (one gene ID per line)"
+            placeholder="Or paste regulated gene set here"
             rows="6"
             className={`w-full border rounded p-2 mt-2 focus:outline-none focus:ring-2 ${
               validation.validationErrors.geneSet 

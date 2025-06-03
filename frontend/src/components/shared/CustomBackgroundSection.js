@@ -37,7 +37,7 @@ export const CustomBackgroundSection = ({
               id="custom-background-textarea-id"
               value={customBackgroundText}
               onChange={(e) => setCustomBackgroundText(e.target.value)}
-              placeholder="Or paste custom background gene set (one gene ID per line)"
+              placeholder="Or paste custom background gene set here"
               rows="5"
               className={`w-full border rounded p-2 mt-2 focus:outline-none focus:ring-2 ${
                 error 

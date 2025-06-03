@@ -20,13 +20,19 @@ const Footer = () => {
                 </p>
                 <p className="flex items-center space-x-2">
                   <MessageCircleCode className="w-4 h-4 text-gray-500" />
-                  <a href="https://twitter.com/akwalker_lab" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href="https://twitter.com/akwalker_lab" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 hover:underline">
                     akwalker_lab
                   </a>
                 </p>
                 <p className="flex items-center space-x-2">
                   <Earth className="w-4 h-4 text-gray-500" />
-                  <a href="http://www.amywalkerlab.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href="http://www.amywalkerlab.com/" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 hover:underline">
                     www.amywalkerlab.com
                   </a>
                 </p>
@@ -56,7 +62,8 @@ const Footer = () => {
               <div className="flex items-top space-x-2">
                 <CloudDownload className="w-5 h-5 text-gray-500" />
                 <div>
-                  <a href="/static/download/Cat_definitions.xlsx" className="text-blue-600 hover:underline">
+                  <a href="/static/download/Cat_definitions.xlsx" 
+                  className="text-blue-600 hover:underline">
                     <div className="font-medium">Category Definitions</div>
                   </a>
                   <span className="text-sm text-gray-500">Nov 11 2021</span>
@@ -72,7 +79,10 @@ const Footer = () => {
               <h4 className="text-xl font-semibold mb-4">Python Package</h4>
               <p className="mb-4">
                 WormCat3 source code is available on{' '} 
-                <a href="https://github.com/DanHUMassMed/wormcat3" className="text-blue-600 font-semibold hover:underline">
+                <a href="https://github.com/DanHUMassMed/wormcat3" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 font-semibold hover:underline">
                   GitHub
                 </a>{' '}We welcome contributions.
               </p>
