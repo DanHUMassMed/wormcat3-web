@@ -33,7 +33,9 @@ export const useWormCatEnrichmentProcessor = (fields) => {
           
           if (response_data?.run_id) {
             navigate(`/report/${response_data.run_id}`);
-          } else {
+          } else if (response_data.status_code != 200){
+            setErrorMessage(response_data.message);
+          }else{
             setErrorMessage("Analysis failed: no run ID returned from the server.");
           }
         } catch (error) {

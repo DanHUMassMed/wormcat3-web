@@ -7,7 +7,7 @@ from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
 from app.utils.file_utility import WORMCAT_OUT_PATH, log_users
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
-from wormcat3 import Wormcat
+from wormcat3 import Wormcat, WormcatError
 from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
 
@@ -58,7 +58,13 @@ async def analyze_and_visualize_enrichment(request: Request):
         zip_dir(wormcat.working_dir_path)
         ret_val = EnrichmentResponse(run_id = wormcat.run_number)
         return ret_val
-
+    except WormcatError as e:
+        return EnrichmentResponse(
+            status_code="422",
+            message=f"Wormcat error: {e.message}",
+            run_id=""
+        )
+        
     except Exception as e:
         logger.error(str(e))
         raise HTTPException(status_code=500, detail=str(e))
