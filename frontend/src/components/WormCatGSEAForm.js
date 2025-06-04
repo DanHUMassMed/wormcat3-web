@@ -159,7 +159,7 @@ export default function WormCatGSEAForm() {
               type="text"
               value={analysisTitle}
               onChange={(e) => setAnalysisTitle(e.target.value)}
-              placeholder="Batch Gene Set Analysis"
+              placeholder="Gene Set Analysis"
               className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isFormDisabled}
             />

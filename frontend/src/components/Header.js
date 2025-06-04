@@ -40,17 +40,19 @@ const Header = () => {
             <a href="/gsea" className="text-gray-700 hover:text-blue-600">
               GSEA
             </a>
-            {isFormPage && (
-            <>
             <a href="#usage" className="text-gray-700 hover:text-blue-600">
                 Usage
             </a><a href="#citation" className="text-gray-700 hover:text-blue-600">
                 Citation
-            </a><a href="#news" className="text-gray-700 hover:text-blue-600">
-                News
             </a><a href="#contact" className="text-gray-700 hover:text-blue-600">
                 Contact
-            </a></>
+            </a>
+            {isFormPage && (
+            <>            
+            <a href="#news" className="text-gray-700 hover:text-blue-600">
+                News
+            </a>
+            </>
             )}
           </div>
         </div>

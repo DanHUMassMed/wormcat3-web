@@ -139,7 +139,7 @@ export default function WormCatBatchForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com"
+              placeholder="your.email@example.edu"
               className={`w-full border rounded p-2 focus:outline-none focus:ring-2 ${
                 validation.validationErrors.email 
                   ? "border-red-500 focus:ring-red-500" 
