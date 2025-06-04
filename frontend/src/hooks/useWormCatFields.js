@@ -93,8 +93,8 @@ export const useWormCatFields = (requiredGeneSet = false) => {
             .filter(line => line !== "");
         
         // Rule 1: At least 2 rows
-        if (lines.length < 2) {
-            return { valid: false, message: "Gene Set must have at least 2 entries" };
+        if (lines.length < 3) {
+            return { valid: false, message: "Gene Set must have at least 3 entries" };
         }
         
         // Rule 2: Each line ≤ 25 characters
@@ -113,12 +113,12 @@ export const useWormCatFields = (requiredGeneSet = false) => {
         // Rule 3: Consistency in format
         // Either both lines start with WBGene or both do not
         const isConsistent =
-            startsWithWBGene(lines[0]) === startsWithWBGene(lines[1]);
+            startsWithWBGene(lines[1]) === startsWithWBGene(lines[2]);
 
         if (!isConsistent) {
             return { 
             valid: false, 
-            message: "The first two Gene Ids must use the same format" 
+            message: "All Gene Ids must use the same format (WBGene or Sequence)" 
             };
         }
         
