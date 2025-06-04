@@ -9,7 +9,6 @@ from app.utils.file_utility import WORMCAT_OUT_PATH, get_upload_dir_path
 from celery import Celery
 from dotenv import load_dotenv
 from wormcat3 import Wormcat, file_util
-from wormcat3 import Wormcat3Error
 from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
 from wormcat3.gsea_analyzer import GSEAAnalyzer

@@ -3,7 +3,7 @@ import { Info, FileText, UploadCloud, Settings, Mail, FileSpreadsheet, AlertTria
 
 const Usage_BatchRGS = () => {
   return (
-    <div id="usage-batch" className="bg-gray-50 border-t border-gray-200 py-16">
+    <div id="usage" className="bg-gray-50 border-t border-gray-200 py-16">
       <div className="max-w-4xl mx-auto px-6">
         {/* Title with gradient bar */}
         <div className="relative mb-12">
