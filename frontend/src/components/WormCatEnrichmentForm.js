@@ -53,7 +53,7 @@ export default function WormCatEnrichmentForm() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-8">
+    <div className="max-w-3xl mx-auto p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-6 text-center">
         Process your Regulated Gene Set with WormCat
       </h1>

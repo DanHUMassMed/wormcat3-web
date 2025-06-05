@@ -11,16 +11,34 @@ const Layout = () => {
     const isRGSForm = location.pathname === "/"; 
     const isBatchForm = location.pathname === "/batch"; 
     const isGSEAForm = location.pathname === "/gsea"; 
- return (
-    <>
-        <Header />
-        <main className="pt-24 px-4"><Outlet /></main>
-        {isRGSForm  && (<Usage_RGS/>)}
-        {isBatchForm && (<Usage_BatchRGS/>)}
-        {isGSEAForm && (<Usage_GSEA/>)}
-        <Citation/>
-        <Footer />
-    </>
+
+    return (
+        <>
+            <Header />
+            <main className="pt-14 px-4">
+                <Outlet />
+            </main>
+            {isRGSForm && (
+                <>
+                    <Usage_RGS />
+                    <Citation />
+                </>
+            )}
+            {isBatchForm && (
+                <>
+                    <Usage_BatchRGS />
+                    <Citation />
+                </>
+            )}
+            {isGSEAForm && (
+                <>
+                    <Usage_GSEA />
+                    <Citation />
+                </>
+            )}
+            <Footer />
+        </>
     );
 };
+
 export default Layout;

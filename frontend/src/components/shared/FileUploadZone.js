@@ -89,7 +89,7 @@ export  const FileUploadZone = ({ fileName, onDrop, label, id, errorMessage, dis
   }, [errorMessage]);
 
   return (
-    <div className="mb-4">
+    <div className="mb-3">
       <input
         ref={fileInputRef}
         type="file"
