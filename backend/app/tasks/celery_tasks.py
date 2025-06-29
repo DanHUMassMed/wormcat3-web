@@ -70,7 +70,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
 
     # Look for CSV files
     csv_files = list(csv_file_path.glob('*.csv'))  
-    increment =  int(80 / len(csv_files))
+    increment =  int(round(80 / len(csv_files),0))
     try:
         for file in csv_files:
             percent_complete += increment
@@ -88,7 +88,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
         time.sleep(0.3)
         return {"status": "failed"}
 
-    percent_complete += 10
+    percent_complete = 100
     msg = json.dumps({"state": "PROGRESS", "progress": percent_complete,"message":"Summarizing Analysis Results"})
     redis_client.publish(f"task:{task_id}", msg)
     time.sleep(0.3)

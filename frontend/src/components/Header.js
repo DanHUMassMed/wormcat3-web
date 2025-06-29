@@ -42,13 +42,15 @@ const Header = () => {
             </a>
             <a href="#usage" className="text-gray-700 hover:text-blue-600">
                 Usage
-            </a><a href="#citation" className="text-gray-700 hover:text-blue-600">
+            </a>
+            <a href="#citation" className="text-gray-700 hover:text-blue-600">
                 Citation
-            </a><a href="#contact" className="text-gray-700 hover:text-blue-600">
+            </a>          
+            <a href="#contact" className="text-gray-700 hover:text-blue-600">
                 Contact
             </a>
             {isFormPage && (
-            <>            
+            <>
             <a href="#news" className="text-gray-700 hover:text-blue-600">
                 News
             </a>
