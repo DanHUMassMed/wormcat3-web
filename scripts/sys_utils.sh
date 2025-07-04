@@ -2,7 +2,17 @@
 
 
 rotate_logs() {
-    [ -f "$LOG_FILE" ] && mv "$LOG_FILE" "$LOG_FILE.0"
+    local log_file="$1"
+
+    if [ -z "$log_file" ]; then
+        echo "Usage: rotate_logs <log_file_path>"
+        return 1
+    fi
+
+    if [ -f "$log_file" ]; then
+        mv "$log_file" "$log_file.0"
+        echo "Rotated Log File: $log_file -> $log_file.0"
+    fi
 }
 
 get_process_id() {
@@ -32,20 +42,49 @@ get_command_by_pid() {
     ps -p "$pid" -o command
 }
 
+check_vars() {
+    local missing=0
+
+    for var_name in PORT SEARCH_PROCESS PROCESS_NAME PROCESS_EXE LOG_PATH LOG_FILE; do
+        if [ -z "${!var_name}" ]; then
+            echo "Error: Required variable $var_name is not set or empty"
+            missing=1
+        fi
+    done
+
+    return $missing
+}
+
+safe_kill() {
+    local error=0
+    for pid in "$@"; do
+        if [ -n "$pid" ]; then
+            if kill -0 "$pid" 2>/dev/null; then
+                kill -9 "$pid" 2>/dev/null || {
+                    echo "Failed to kill PID $pid"
+                    error=1
+                }
+            fi
+        fi
+    done
+    return $error
+}
+
+
 start() {
     if [ -z "${PROCESS_ID}" ]; then
 	    if [ -n "${PORT_IN_USE}" ]; then
-   	        echo "${PROCESS_NAME} port is in use by PID:[$PORT_IN_USE]."
+   	      echo "${PROCESS_NAME} port is in use by PID:[$PORT_IN_USE]."
             echo "Stopping process at ID:[${PORT_IN_USE}]."
-            kill -9 ${PORT_IN_USE}
-            sleep 5
+            safe_kill ${PORT_IN_USE}
+            sleep 4
         fi
         echo "Starting ${PROCESS_NAME} ..."
         mkdir -p "$LOG_PATH"
-        rotate_logs
+        rotate_logs "$LOG_FILE"
 
         nohup ${PROCESS_EXE} > "$LOG_FILE" 2>&1 &
-        sleep 5
+        sleep 4
 	     
 	else
    	    echo "${PROCESS_NAME} is already running with process ID:[${PROCESS_ID}]"
@@ -55,13 +94,14 @@ start() {
 
 stop() {
 	if [ -n "${PROCESS_ID}" ]; then
-   	    echo "Stopping ${PROCESS_NAME} ID:[${PROCESS_ID}]"
-		kill -9 ${PROCESS_ID}
+      echo "Stopping ${PROCESS_NAME} with PID:[${PROCESS_ID}]"
+		safe_kill ${PROCESS_ID}
+		safe_kill ${PORT_IN_USE}
 	else
-   	    echo "${PROCESS_NAME}} is not running."
+       echo "${PROCESS_NAME} is not running."
 	    if [ -n "${PORT_IN_USE}" ]; then
-   	    echo "However ${PROCESS_NAME} port is blocked Stopping process PID:[${PORT_IN_USE}]"
-			 kill -9 ${PORT_IN_USE}
+   	    echo "However ${PROCESS_NAME} port is blocked. Stopping blocking process PID:[${PORT_IN_USE}]"
+			 safe_kill ${PORT_IN_USE}
        fi
 	fi
 
@@ -97,7 +137,7 @@ handle_action() {
             ;;
         "RESTART")
             stop
-            sleep 5
+            sleep 4
             start
             ;;
         "STATUS")
@@ -112,6 +152,8 @@ handle_action() {
             ;;
     esac
 }
+
+check_vars || exit 1
 
 PORT_IN_USE=$(get_port_in_use "$PORT")
 PROCESS_ID=$(get_process_id "$SEARCH_PROCESS")
