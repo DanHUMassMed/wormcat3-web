@@ -137,7 +137,9 @@ handle_action() {
             ;;
         "RESTART")
             stop
-            sleep 4
+            sleep 5
+				PORT_IN_USE=$(get_port_in_use "$PORT")
+				PROCESS_ID=$(get_process_id "$SEARCH_PROCESS")
             start
             ;;
         "STATUS")
@@ -157,4 +159,3 @@ check_vars || exit 1
 
 PORT_IN_USE=$(get_port_in_use "$PORT")
 PROCESS_ID=$(get_process_id "$SEARCH_PROCESS")
-PID_FILE="$LOG_PATH/${PROCESS_EXE##*/}.pid"
