@@ -18,10 +18,19 @@ get_port_in_use() {
         return 0
     fi
 
-    lsof -i :"$port" -sTCP:LISTEN -t 2>/dev/null || echo ""
+    lsof -i :${port} | grep LISTEN|grep IPv4| awk '{print $2}' | xargs
 }
 
+get_command_by_pid() {
+    local pid="$1"
 
+    if [ -z "$pid" ]; then
+        echo "PID is empty."
+        return 1
+    fi
+ 
+    ps -p "$pid" -o command
+}
 
 start() {
     if [ -z "${PROCESS_ID}" ]; then
@@ -62,8 +71,8 @@ status() {
     if [ -z "${PROCESS_ID}" ]; then
         echo "${PROCESS_NAME} is not running."
         if [ -n "${PORT_IN_USE}" ]; then
-            echo "However ${PROCESS_NAME} Port is blocked by PID:$PORT_IN_USE"
-            BLOCKING_PROCESS="$(ps -p "${PORT_IN_USE}" -o command)"
+            echo "However ${PROCESS_NAME} Port ${PORT} is blocked by PID: $PORT_IN_USE"
+            BLOCKING_PROCESS="$(get_command_by_pid "${PORT_IN_USE}")"
             echo "Command: $BLOCKING_PROCESS"
         fi
     else

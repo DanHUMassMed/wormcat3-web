@@ -3,6 +3,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RUN_UTILS="$SCRIPT_DIR/../scripts/run_utils.sh"
 source "$RUN_UTILS"
 
+clear
 ensure_conda_env wormcat3-web
 
 export WORMCAT_OUT_PATH="${HOME}/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
@@ -17,7 +18,7 @@ fi
 if [ "$3" == "ACTIVATE_DEBUG" ]; then
     export ACTIVATE_DEBUG="TRUE"
 fi
-clear
+
 
 NUM_WORKERS=3
 TIMEOUT=120

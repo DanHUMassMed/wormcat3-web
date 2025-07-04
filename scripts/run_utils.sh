@@ -2,21 +2,26 @@
 
 ensure_conda_env() {
     local target_env="$1"
+
     if [ -z "$target_env" ]; then
         echo "Usage: ensure_conda_env <env_name>"
         return 1
     fi
 
-    local CONDA_ENV="$(conda info --base)/bin"
+    if ! command -v conda &> /dev/null; then
+        echo "conda is not installed or not in PATH"
+        return 1
+    fi
 
-    # Get the active conda environment
+    # Load conda functions for activation
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+
     local active_env
-    active_env=$(conda info | grep "active environment" | cut -d: -f2 | tr -d '[:space:]')
+    active_env=$(basename "$CONDA_PREFIX")
 
-    # Check if the active environment matches the target
     if [ "$active_env" != "$target_env" ]; then
         echo "You are not in the '$target_env' environment. Activating it now..."
-        source "${CONDA_ENV}/activate" "$target_env"
+        conda activate "$target_env"
     else
         echo "You are already in the '$target_env' environment."
     fi
