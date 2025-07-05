@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+# Rotates the given log file by renaming it to <log_file>.0
 rotate_logs() {
     local log_file="$1"
 
@@ -15,11 +15,13 @@ rotate_logs() {
     fi
 }
 
+# Returns the PID(s) of a running process matching the given search string
 get_process_id() {
     local search_process="$1"
     ps auxww | grep "$search_process" | grep -v grep | awk '{print $2}' | xargs
 }
 
+# Returns the PID of a process listening on a specific port
 get_port_in_use() {
     local port="$1"
 
@@ -31,6 +33,7 @@ get_port_in_use() {
     lsof -i :${port} | grep LISTEN|grep IPv4| awk '{print $2}' | xargs
 }
 
+# Prints the full command that was used to start the process with the given PID
 get_command_by_pid() {
     local pid="$1"
 
@@ -42,6 +45,8 @@ get_command_by_pid() {
     ps -p "$pid" -o command
 }
 
+# Checks that all required environment variables are set
+# Required: PORT, SEARCH_PROCESS, PROCESS_NAME, PROCESS_EXE, LOG_PATH, LOG_FILE
 check_vars() {
     local missing=0
 
@@ -55,6 +60,7 @@ check_vars() {
     return $missing
 }
 
+# Attempts to kill all provided PIDs safely with SIGKILL
 safe_kill() {
     local error=0
     for pid in "$@"; do
@@ -70,7 +76,7 @@ safe_kill() {
     return $error
 }
 
-
+# Starts the process if it's not already running
 start() {
     if [ -z "${PROCESS_ID}" ]; then
 	    if [ -n "${PORT_IN_USE}" ]; then
@@ -91,7 +97,7 @@ start() {
 	fi
 }
 
-
+# Stops the running process and any process using the same port
 stop() {
 	if [ -n "${PROCESS_ID}" ]; then
       echo "Stopping ${PROCESS_NAME} with PID:[${PROCESS_ID}]"
@@ -107,6 +113,7 @@ stop() {
 
 }
 
+# Displays the current status of the process
 status() {
     if [ -z "${PROCESS_ID}" ]; then
         echo "${PROCESS_NAME} is not running."
@@ -120,7 +127,7 @@ status() {
     fi
 }
 
-
+# Handles the user-supplied action argument (START, STOP, RESTART, STATUS)
 handle_action() {
     local raw_action="$1"
 
@@ -155,7 +162,9 @@ handle_action() {
     esac
 }
 
+# Check that all required variables are set
 check_vars || exit 1
 
+# Capture current port usage and process ID
 PORT_IN_USE=$(get_port_in_use "$PORT")
 PROCESS_ID=$(get_process_id "$SEARCH_PROCESS")
