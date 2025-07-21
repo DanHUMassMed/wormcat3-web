@@ -22,7 +22,7 @@ export const useWormCatEnrichmentProcessor = (fields) => {
           p_adjust_method: fields.significanceMethod,
           p_adjust_threshold: parseFloat(fields.significanceThreshold),
         };
-    
+
         // Add custom background if selected
         if (fields.statisticalDomain === "custom") {
           enrichmentRequest.background_genes = fields.customBackgroundText.trim().split(/\r?\n/).filter(Boolean);

@@ -59,7 +59,7 @@ def setup_logging(logger_nm="app", config_path='logging_config.ini'):
         logging.warning(f"Logging configuration file '{config_path}' not found. Using default logging configuration.")
         logging.warning('\n'.join(sys.path))
 
-    LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
+    LOG_LEVEL = os.getenv("WORMCAT_LOG_LEVEL", "DEBUG")
     logger =logging.getLogger(logger_nm)
     set_log_level(logger, LOG_LEVEL)
     return logger

@@ -7,7 +7,7 @@ class EnrichmentRequest(BaseModel):
     title: str = DEFAULT_TITLE
     email: str = None
     annotation_file_name: str = DEFAULT_ANNOTATION_FILE_NAME
-    background: Optional[Union[str, List[str]]] = None
+    background_genes: Optional[Union[str, List[str]]] = None
     p_adjust_method: str = PAdjustMethod.BONFERRONI.value
     p_adjust_threshold: float = DEFAULT_P_ADJUST_THRESHOLD
 

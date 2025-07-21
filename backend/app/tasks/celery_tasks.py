@@ -19,7 +19,7 @@ load_dotenv()
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
+logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
 
 celery = Celery(
     "worker",
@@ -78,7 +78,7 @@ def run_and_wait_task(self, enrichment_request: dict, task_id: str):
             redis_client.publish(f"task:{task_id}", msg)
             time.sleep(0.3)
             wormcat = Wormcat(working_dir_path=working_dir_path, annotation_file_name=enrichment_request['annotation_file_name'], title=file.stem)
-            wormcat.analyze_and_visualize_enrichment(str(file), enrichment_request['background'], 
+            wormcat.analyze_and_visualize_enrichment(str(file), enrichment_request['background_genes'], 
                                                     p_adjust_method = PAdjustMethod.from_str(enrichment_request['p_adjust_method']), 
                                                     p_adjust_threshold = ensure_float(enrichment_request['p_adjust_threshold']))
         
@@ -122,7 +122,7 @@ def run_and_email_task(self, enrichment_request: dict, task_id: str):
         input_file_path=f"{get_upload_dir_path()}/{enrichment_request['gene_set']}"
         wormcat.wormcat_batch(
                     input_data = input_file_path, 
-                    background_input = enrichment_request['background'], 
+                    background_input = enrichment_request['background_genes'], 
                     p_adjust_method = PAdjustMethod.from_str(enrichment_request['p_adjust_method']), 
                     p_adjust_threshold = ensure_float(enrichment_request['p_adjust_threshold']))
 

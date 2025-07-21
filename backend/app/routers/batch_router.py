@@ -14,7 +14,7 @@ from fastapi import (APIRouter, File, HTTPException, Request, UploadFile,WebSock
 from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
+logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
 
 router = APIRouter()
 redis_client = redis.Redis(host='localhost', port=6379, db=0)

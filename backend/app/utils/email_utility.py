@@ -13,7 +13,7 @@ load_dotenv()
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
+logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
 
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_LOGIN = os.getenv("SMTP_LOGIN", "")

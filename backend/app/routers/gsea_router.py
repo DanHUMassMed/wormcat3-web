@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
 
 logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
+logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
 
 
 router = APIRouter()

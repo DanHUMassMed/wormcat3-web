@@ -12,7 +12,7 @@ from wormcat3.constants import PAdjustMethod
 from wormcat3.file_util import zip_dir
 
 logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
+logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
 
 router = APIRouter()
 
@@ -43,7 +43,7 @@ async def analyze_and_visualize_enrichment(request: Request):
             message=f"Validation error: {error_messages}",
             run_id=""
         )
-    
+
     try:
         wormcat = Wormcat(working_dir_path=WORMCAT_OUT_PATH, 
                           title=enrichment_request.title, 
@@ -51,7 +51,7 @@ async def analyze_and_visualize_enrichment(request: Request):
                           email=enrichment_request.email)
         wormcat.analyze_and_visualize_enrichment(
             gene_set_input = enrichment_request.gene_set,
-            background_input = enrichment_request.background,
+            background_input = enrichment_request.background_genes,
             p_adjust_method = PAdjustMethod.from_str(enrichment_request.p_adjust_method),
             p_adjust_threshold = enrichment_request.p_adjust_threshold
         )

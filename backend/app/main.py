@@ -7,11 +7,15 @@ import debugpy
 from app.routers import enrichment_router, batch_router, gsea_router
 import logging
 
-logger = logging.getLogger()
-logger.setLevel(os.getenv("LOG_LEVEL", "WARNING").upper())
-
 load_dotenv() 
 react_app_url = os.getenv("REACT_APP_URL", "http://localhost:9000")
+
+logger = logging.getLogger()
+logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
+
+# Print the current log level as a string
+print("Current log level is:", logging.getLevelName(logger.level))
+logger.info("Current log level is:", logging.getLevelName(logger.level))
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "FALSE")
 if ACTIVATE_DEBUG=="TRUE":
