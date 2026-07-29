@@ -41,8 +41,8 @@ export const useWormCatFields = (requiredGeneSet = false) => {
         if (analysisTitle) {
             if (analysisTitle.length > 20) {
                 newErrors.analysisTitle = "Title must be 20 characters or fewer";
-            } else if (!isASCII(analysisTitle)) {
-                newErrors.analysisTitle = "Title must contain only text characters";
+            } else if (!/^[A-Za-z0-9_]+$/.test(analysisTitle)) {
+                newErrors.analysisTitle = "Title must contain only letters, digits, or underscores";
             }
         }
 

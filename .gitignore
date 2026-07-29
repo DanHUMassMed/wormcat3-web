@@ -15,6 +15,8 @@ freeze.txt
 **/.env
 
 **/redis/redis-stable/
+dynamic/
+**/dynamic/
 frontend/public/dynamic/
 frontend/build/
 **/test_output/
@@ -25,3 +27,8 @@ notebooks/data/
 app_logs/
 
 gunicorn.pid
+
+# Virtual Environments
+.venv/
+.uv/
+*.egg-info/

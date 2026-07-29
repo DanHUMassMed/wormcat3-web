@@ -1,70 +1,125 @@
-# Getting Started with Create React App
+# WormCat 3 Web - Frontend ⚛️🎨
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[![React](https://img.shields.io/badge/React-19.1+-61DAFB.svg)](https://react.dev/)
+[![React Router](https://img.shields.io/badge/React_Router-v7-CA4245.svg)](https://reactrouter.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4+-38B2AC.svg)](https://tailwindcss.com/)
+[![Framer Motion](https://img.shields.io/badge/Framer_Motion-12+-0055FF.svg)](https://www.framer.com/motion/)
 
-## Available Scripts
+> The user interface for **WormCat 3 Web**. Built with React 19, Tailwind CSS, and Framer Motion, providing an intuitive, interactive experience for submitting genomic analysis jobs and viewing high-resolution SVG enrichment plots and statistics.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Key Features & UI Workflows
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Enrichment Submission (RGS)**: Input gene lists, choose custom annotations, select p-value adjustment algorithms (`bonferroni`, `fdr_bh`), and set significance thresholds.
+- **Batch Processing**: Drag-and-drop batch submission interface for multi-sample datasets.
+- **Ranked GSEA**: Upload ranked gene metric files for continuous Gene Set Enrichment Analysis.
+- **Interactive Report Viewer**: Real-time polling for job status with interactive plot tabs, zoomable SVG charts, and tabular download links (CSV, Excel).
+- **Responsive Design**: Mobile and desktop friendly layouts with smooth animations powered by Framer Motion and Lucide icons.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## 🗺️ Application Routing
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The application uses **React Router v7** for declarative client-side routing:
 
-### `npm run build`
+| Route Path | Component | Purpose |
+| :--- | :--- | :--- |
+| `/` | `WormCatEnrichmentForm` | Single Gene Set Enrichment Analysis submission |
+| `/batch` | `WormCatBatchForm` | High-throughput batch enrichment job submission |
+| `/gsea` | `WormCatGSEAForm` | Ranked Gene Set Enrichment Analysis submission |
+| `/report/:run_id` | `WormCatEnrichmentReport` | Interactive report viewer for RGS and Batch runs |
+| `/gsea_report/:run_id` | `WormCatGSEAReport` | Interactive report viewer for GSEA runs |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📂 Frontend Architecture & Component Structure
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```text
+frontend/
+├── public/
+│   ├── static/download/      # Reference genome annotation CSVs
+│   └── index.html             # HTML entry template
+├── src/
+│   ├── api/                   # REST API clients communicating with FastAPI
+│   │   ├── enrichmentAPI.js   # RGS API calls & payload mapping
+│   │   ├── batchAPI.js        # Batch processing API integration
+│   │   └── gseaAPI.js         # GSEA API endpoints
+│   ├── components/            # UI Components
+│   │   ├── WormCatEnrichmentForm.js   # RGS submission form
+│   │   ├── WormCatBatchForm.js        # Batch submission form
+│   │   ├── WormCatGSEAForm.js         # GSEA submission form
+│   │   ├── WormCatEnrichmentReport.js # RGS interactive plot & table viewer
+│   │   ├── WormCatGSEAReport.js        # GSEA plot & metric report viewer
+│   │   ├── Header.js                  # Main navigation bar
+│   │   ├── Footer.js                  # Footer with version & links
+│   │   └── Layout.js                  # Shared application shell layout
+│   ├── hooks/                 # Custom React hooks (e.g., usePageTracking)
+│   ├── test/                  # Frontend API integration tests (AVA)
+│   ├── App.js                 # Router setup & main component
+│   └── index.js               # React DOM render entrypoint
+├── run_react.sh               # Runner script (dev server or Express server)
+├── server.js                  # Express static server for production builds
+├── sys_react.sh               # System control script integration
+└── package.json               # Dependencies & build scripts
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## ⚙️ Environment Configuration
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Configuration files are maintained for different environments:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- `.env` / `env.dev`: Local development configuration
+- `env.prod`: Production deployment settings
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Environment Variables
 
-## Learn More
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `REACT_APP_API_URL` | Base URL for FastAPI backend endpoints | `http://localhost:8000` |
+| `REACT_APP_PORT` | Port for Express production static server | `9000` |
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🛠️ Scripts & Commands
 
-### Code Splitting
+From the `frontend/` directory:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Development Mode
 
-### Analyzing the Bundle Size
+```bash
+npm start
+```
+Starts the Webpack development server at `http://localhost:3000` with hot-reloading.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Production Build & Local Serve
 
-### Making a Progressive Web App
+```bash
+npm run build
+node server.js
+```
+Bundles optimized static assets into `build/` and starts the Express production server (`server.js`) on port `9000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Orchestrated Control (`run_react.sh`)
 
-### Advanced Configuration
+```bash
+./run_react.sh dev   # Starts npm dev server
+./run_react.sh prod  # Builds React app & launches Express server.js
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 🧪 Testing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Run API integration tests:
 
-### `npm run build` fails to minify
+```bash
+npx ava src/test/api/enrichmentAPI.test.mjs
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Run unit tests via React Scripts:
+
+```bash
+npm test
+```

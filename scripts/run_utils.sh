@@ -1,28 +1,48 @@
 #!/bin/bash
 
-ensure_conda_env() {
-    local target_env="$1"
+ensure_uv_env() {
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local project_root
+    project_root="$(cd "$script_dir/.." && pwd)"
+    local venv_path="$project_root/.venv"
 
-    if [ -z "$target_env" ]; then
-        echo "Usage: ensure_conda_env <env_name>"
-        return 1
+    if [ ! -d "$venv_path" ]; then
+        echo "Virtual environment not found at $venv_path. Creating with uv..."
+        if command -v uv &> /dev/null; then
+            uv venv "$venv_path" --python 3.13 || return 1
+        else
+            echo "Error: uv is not installed or not in PATH."
+            return 1
+        fi
     fi
 
-    if ! command -v conda &> /dev/null; then
-        echo "conda is not installed or not in PATH"
-        return 1
-    fi
-
-    # Load conda functions for activation
-    source "$(conda info --base)/etc/profile.d/conda.sh"
-
-    local active_env
-    active_env=$(basename "$CONDA_PREFIX")
-
-    if [ "$active_env" != "$target_env" ]; then
-        echo "You are not in the '$target_env' environment. Activating it now..."
-        conda activate "$target_env"
+    # Activate virtual environment
+    if [ -f "$venv_path/bin/activate" ]; then
+        source "$venv_path/bin/activate"
     else
-        echo "You are already in the '$target_env' environment."
+        echo "Error: Cannot find activation script at $venv_path/bin/activate"
+        return 1
     fi
+
+    # Export PYTHONPATH for backend & external wormcat3 library
+    local backend_dir="$project_root/backend"
+    local wormcat3_dir="$HOME/Code/Python/wormcat3"
+
+    case ":$PYTHONPATH:" in
+        *":$backend_dir:"*) ;;
+        *) export PYTHONPATH="$backend_dir:$PYTHONPATH" ;;
+    esac
+
+    if [ -d "$wormcat3_dir" ]; then
+        case ":$PYTHONPATH:" in
+            *":$wormcat3_dir:"*) ;;
+            *) export PYTHONPATH="$wormcat3_dir:$PYTHONPATH" ;;
+        esac
+    fi
+}
+
+ensure_conda_env() {
+    # Backward compatibility alias delegating to ensure_uv_env
+    ensure_uv_env "$@"
 }
