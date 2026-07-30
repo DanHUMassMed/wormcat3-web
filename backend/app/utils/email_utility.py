@@ -1,3 +1,4 @@
+import logging
 import os
 import smtplib
 import ssl
@@ -5,12 +6,13 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from pathlib import Path
 from socket import gaierror
+from typing import Optional
 
 from dotenv import load_dotenv
 
-load_dotenv() 
-import logging
+load_dotenv()
 
 logger = logging.getLogger()
 logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
@@ -19,18 +21,13 @@ SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
 SMTP_LOGIN = os.getenv("SMTP_LOGIN", "")
 SMTP_PASSWD = os.getenv("SMTP_PASSWD", "")
 
-if not SMTP_PASSWD:
-    raise RuntimeError("Set PASSWD in .env for proper usage")
 
-if not SMTP_LOGIN:
-    raise RuntimeError("Set SMTP_LOGIN in .env for proper usage")
+def email_results(receiver: str, the_file: str) -> bool:
+    file_path = Path(the_file)
+    filename = file_path.stem
 
-def email_results(receiver, the_file):
-    index_of_sep = the_file.rfind(os.path.sep)
-    filename = the_file[index_of_sep + 1:-4]
-
-    subject = 'Wormcat Results for {}'.format(filename)
-    sender = "wormcat.emailer@gmail.com"
+    subject = f"Wormcat Results for {filename}"
+    sender = SMTP_LOGIN or "wormcat.emailer@gmail.com"
     message_text = """
 Hello,
 
@@ -43,16 +40,16 @@ If you’d like to get in touch, please visit wormcat.com for contact informatio
 Thank you for using wormcat.com!
     """
     message = construct_message_with_attachment(subject, sender, receiver, message_text, the_file)
-    send_message_ssl(sender, receiver, message)
-    
-def email_error_results(receiver, run_number, error_message):
+    return send_message_ssl(sender, receiver, message)
 
+
+def email_error_results(receiver: str, run_number: str, error_message: str) -> bool:
     subject = f"Wormcat ERROR while executing {run_number}"
-    sender = "wormcat.emailer@gmail.com"
+    sender = SMTP_LOGIN or "wormcat.emailer@gmail.com"
     message_text = f"""
 Hello,
 
-We are sorry to inform you that your WormCat run has failed to complete. Please find the results error below.
+We are sorry to inform you that your WormCat run has failed to complete. Please find the error details below:
 
 {error_message}
 
@@ -63,15 +60,21 @@ If you’d like to get in touch, please visit wormcat.com for contact informatio
 Thank you for using wormcat.com!
     """
     message = construct_message_with_html(subject, sender, receiver, message_text)
-    send_message_ssl(sender, receiver, message)
-    
-    
-def construct_message_with_html(subject, sender, receiver, message_text=None, message_html=None):
+    return send_message_ssl(sender, receiver, message)
+
+
+def construct_message_with_html(
+    subject: str,
+    sender: str,
+    receiver: str,
+    message_text: Optional[str] = None,
+    message_html: Optional[str] = None,
+) -> str:
     the_message = MIMEMultipart()
-    the_message['Subject'] = subject
-    the_message['To'] = receiver
-    the_message['From'] = sender
-    the_message.preamble = 'I am not using a MIME-aware mail reader.\n'
+    the_message["Subject"] = subject
+    the_message["To"] = receiver
+    the_message["From"] = sender
+    the_message.preamble = "I am not using a MIME-aware mail reader.\n"
 
     if message_text:
         the_message.attach(MIMEText(message_text, "plain"))
@@ -81,76 +84,88 @@ def construct_message_with_html(subject, sender, receiver, message_text=None, me
     return the_message.as_string()
 
 
-def construct_message_with_attachment(subject, sender, receiver, message_text, the_file):
-    zip_file = open(the_file, 'rb')
+def construct_message_with_attachment(
+    subject: str, sender: str, receiver: str, message_text: str, the_file: str
+) -> str:
     the_message = MIMEMultipart()
-    the_message['Subject'] = subject
-    the_message['To'] = receiver
-    the_message['From'] = sender
-    the_message.preamble = 'I am not using a MIME-aware mail reader.\n'
+    the_message["Subject"] = subject
+    the_message["To"] = receiver
+    the_message["From"] = sender
+    the_message.preamble = "I am not using a MIME-aware mail reader.\n"
 
     the_message.attach(MIMEText(message_text, "plain"))
 
-    msg = MIMEBase('application', 'zip')
-    msg.set_payload(zip_file.read())
+    msg = MIMEBase("application", "zip")
+    with open(the_file, "rb") as zip_file:
+        msg.set_payload(zip_file.read())
     encoders.encode_base64(msg)
 
-    index_of_sep = the_file.rfind(os.path.sep)
-    msg.add_header('Content-Disposition', 'attachment', filename=the_file[index_of_sep+1:])
+    filename = Path(the_file).name
+    msg.add_header("Content-Disposition", "attachment", filename=filename)
     the_message.attach(msg)
     return the_message.as_string()
 
 
-def send_message(sender, receiver, message):
+def send_message(sender: str, receiver: str, message: str) -> bool:
+    smtp_login = os.getenv("SMTP_LOGIN", SMTP_LOGIN)
+    smtp_passwd = os.getenv("SMTP_PASSWD", SMTP_PASSWD)
+    smtp_server = os.getenv("SMTP_SERVER", SMTP_SERVER)
+
+    if not smtp_login or not smtp_passwd:
+        logger.warning(
+            "SMTP credentials not set in environment (SMTP_LOGIN / SMTP_PASSWD). "
+            "Skipping email delivery to %s.",
+            receiver,
+        )
+        return False
+
     try:
         port = 587
-        with smtplib.SMTP(SMTP_SERVER, port) as server:
+        with smtplib.SMTP(smtp_server, port) as server:
             server.ehlo()
             server.starttls()
-            server.login(SMTP_LOGIN, SMTP_PASSWD)
+            server.login(smtp_login, smtp_passwd)
             server.sendmail(sender, receiver, message)
+        logger.info("SMTP email successfully sent to: %s", receiver)
+        return True
     except (gaierror, ConnectionRefusedError):
-        logging.debug("Failed to connect to the server. Bad connection settings?")
+        logger.error("Failed to connect to SMTP server %s:%s. Check network or settings.", smtp_server, port)
+        return False
     except smtplib.SMTPServerDisconnected:
-        logging.debug("Failed to connect to the server. Wrong user/password?")
+        logger.error("SMTP server disconnected unexpectedly. Check user/password credentials.")
+        return False
     except smtplib.SMTPException as e:
-        logging.debug("SMTP error occurred: {}".format(str(e)))
-    else:
-        logging.debug("SMTP sent to: {}".format(receiver))
+        logger.error("SMTP error occurred while sending email to %s: %s", receiver, str(e))
+        return False
 
 
-def send_message_ssl(sender, receiver, message):
+def send_message_ssl(sender: str, receiver: str, message: str) -> bool:
+    smtp_login = os.getenv("SMTP_LOGIN", SMTP_LOGIN)
+    smtp_passwd = os.getenv("SMTP_PASSWD", SMTP_PASSWD)
+    smtp_server = os.getenv("SMTP_SERVER", SMTP_SERVER)
+
+    if not smtp_login or not smtp_passwd:
+        logger.warning(
+            "SMTP credentials not set in environment (SMTP_LOGIN / SMTP_PASSWD). "
+            "Skipping SSL email delivery to %s.",
+            receiver,
+        )
+        return False
+
     try:
         port = 465
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_SERVER, port, context=context) as server:
-            server.login(SMTP_LOGIN, SMTP_PASSWD)
+        with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+            server.login(smtp_login, smtp_passwd)
             server.sendmail(sender, receiver, message)
+        logger.info("SMTP SSL email successfully sent to: %s", receiver)
+        return True
     except (gaierror, ConnectionRefusedError):
-        logging.debug("Failed to connect to the server. Bad connection settings?")
+        logger.error("Failed to connect to SSL SMTP server %s:%s.", smtp_server, port)
+        return False
     except smtplib.SMTPServerDisconnected:
-        logging.debug("Failed to connect to the server. Wrong user/password?")
+        logger.error("SSL SMTP server disconnected unexpectedly. Check user/password credentials.")
+        return False
     except smtplib.SMTPException as e:
-        logging.debug("SMTP error occurred: {}".format(str(e)))
-    else:
-        logging.debug("SMTP sent to: {}".format(receiver))
-
-
-def main():
-    sender = "wormcat.emailer@gmail.com"
-    receiver = "dphiggins@gmail.com"
-    the_file = "README.md.zip"
-    html = """<html> <body> <p>Hi,<br> Check out our new search engine:</p> 
-    <p><a href="http://google.com">Google</a></p> 
-    <p> Feel free to <strong>let us</strong> know if you like it!</p> </body> </html> """
-
-    message = construct_message_with_html(subject="Hello Subject!",
-                                          sender=sender,
-                                          receiver=receiver,
-                                          message_text="This is a test!!",
-                                          message_html=html)
-    send_message_ssl(sender, receiver, message)
-
-
-if __name__ == "__main__":
-    main()
+        logger.error("SMTP SSL error occurred while sending email to %s: %s", receiver, str(e))
+        return False
