@@ -1785,8 +1785,8 @@ wheels = [
 
 [[package]]
 name = "wormcat3"
-version = "0.1.11"
-source = { editable = "../wormcat3" }
+version = "0.1.13"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "build" },
     { name = "gseapy" },
@@ -1799,19 +1799,9 @@ dependencies = [
     { name = "statsmodels" },
     { name = "xlsxwriter" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "build" },
-    { name = "gseapy", specifier = "==1.1.8" },
-    { name = "ipykernel" },
-    { name = "openpyxl", specifier = "==3.1.5" },
-    { name = "pandas", specifier = "==2.2.3" },
-    { name = "pip" },
-    { name = "plotnine", specifier = "==0.14.5" },
-    { name = "scipy", specifier = "==1.16.3" },
-    { name = "statsmodels", specifier = "==0.14.4" },
-    { name = "xlsxwriter", specifier = "==3.2.2" },
+sdist = { url = "https://files.pythonhosted.org/packages/11/07/2be39d0a78b455f30d73d664ebf0e9bbe60baf886be3817d6cd65570e4da/wormcat3-0.1.13.tar.gz", hash = "sha256:17fe2edc3fddea2dd25333a8fd9142296074d9031ca80bf67c71477cda7bcbf3", size = 3071304, upload-time = "2026-07-30T17:52:10.941Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/18/696fe4ffb82700319fecc6e1fbdc573dc0d318642517d0eaa98537e252dc/wormcat3-0.1.13-py3-none-any.whl", hash = "sha256:7d13bcb7adadfe2c82f743b494f7689620214d89971aa6d7092c97bc9eb42c96", size = 3172532, upload-time = "2026-07-30T17:52:08.371Z" },
 ]
 
 [[package]]
@@ -1844,7 +1834,7 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.6" },
     { name = "redis", specifier = ">=4.5.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.20.0" },
-    { name = "wormcat3", editable = "../wormcat3" },
+    { name = "wormcat3" },
 ]
 
 [[package]]

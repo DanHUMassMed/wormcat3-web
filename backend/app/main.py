@@ -5,20 +5,28 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import debugpy
 from app.routers import enrichment_router, batch_router, gsea_router
-import logging
+from app.utils.logger import get_logger, configure_logging
+
+
 
 load_dotenv() 
 react_app_url = os.getenv("REACT_APP_URL", "http://localhost:9000")
 
-logger = logging.getLogger()
-logger.setLevel(os.getenv("WORMCAT_LOG_LEVEL", "WARNING").upper())
+logger =configure_logging()
 
-# Print the current log level as a string
-print("Current log level is:", logging.getLevelName(logger.level))
-logger.info("Current log level is:", logging.getLevelName(logger.level))
+ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "None")
+logger.info(f"ACTIVATE_DEBUG:{ACTIVATE_DEBUG}")
+
+WORMCAT_LOG_LEVEL = os.getenv("WORMCAT_LOG_LEVEL", "None")
+logger.info(f"WORMCAT_LOG_LEVEL:{WORMCAT_LOG_LEVEL}")
+
+WORMCAT_LOG_PATH = os.getenv("WORMCAT_LOG_PATH", "None")
+logger.info(f"WORMCAT_LOG_PATH:{WORMCAT_LOG_PATH}")
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "FALSE")
+logger.info(f"ACTIVATE_DEBUG:{ACTIVATE_DEBUG}")
 if ACTIVATE_DEBUG=="TRUE":
+    print("Waiting for debugger to attach...")
     debugpy.listen(("0.0.0.0", 58979))
     logger.info("Waiting for debugger to attach...")
 

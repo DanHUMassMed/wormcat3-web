@@ -8,6 +8,7 @@ version = "0.1.0"
 description = "Web interface and FastAPI backend for WormCat 3"
 requires-python = ">=3.13"
 dependencies = [
+    "matplotlib==3.10.8",
     "wormcat3",
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.20.0",

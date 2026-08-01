@@ -10,8 +10,9 @@ rotate_logs() {
     fi
 
     if [ -f "$log_file" ]; then
-        mv "$log_file" "$log_file.0"
-        echo "Rotated Log File: $log_file -> $log_file.0"
+        backup_file="${log_file%.*}.bk.${log_file##*.}"
+        mv "$log_file" "$backup_file"
+        echo "Rotated Log File: $log_file -> $backup_file"
     fi
 }
 

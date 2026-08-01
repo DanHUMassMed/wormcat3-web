@@ -41,8 +41,3 @@ ensure_uv_env() {
         esac
     fi
 }
-
-ensure_conda_env() {
-    # Backward compatibility alias delegating to ensure_uv_env
-    ensure_uv_env "$@"
-}

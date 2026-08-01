@@ -57,9 +57,9 @@ However, a thorough architectural review reveals several violations of **SOLID p
    - **Problem**: `zip_file = open(the_file, 'rb')` opened a file without a `with` block or explicit `.close()`.
    - **Fix**: Refactored [email_utility.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/utils/email_utility.py) to use `with open(the_file, "rb") as zip_file:` context manager.
 
-3. **In-Memory File Reading** ([batch_router.py:43-44](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/batch_router.py#L43-L44)):
-   - **Problem**: `await file.read()` reads entire uploaded batch files into memory at once.
-   - **Fix**: Stream large file uploads to disk in chunks (`shutil.copyfileobj(file.file, destination)`).
+3. **In-Memory File Reading** — **[RESOLVED]**:
+   - **Problem**: `await file.read()` read entire uploaded batch files into RAM memory at once.
+   - **Fix**: Refactored [batch_router.py:37-46](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/batch_router.py#L37-L46) to use `shutil.copyfileobj(file.file, destination)` for chunked disk streaming without loading whole payloads into memory.
 
 ### Axis 2: Readability & Code Hygiene
 
@@ -105,7 +105,7 @@ However, a thorough architectural review reveals several violations of **SOLID p
 | Priority | Component | Action Item | Status | Target File(s) |
 | :--- | :--- | :--- | :--- | :--- |
 | ✅ **Done** | Email Utility | Remove import-time `RuntimeError` checks; wrap file open in `with` block; remove scratch `main()`; add deferred validation. | **RESOLVED** | [email_utility.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/utils/email_utility.py) |
+| ✅ **Done** | File Uploads | Replace in-memory `await file.read()` with chunked disk streaming (`shutil.copyfileobj`) in `upload_file`. | **RESOLVED** | [batch_router.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/batch_router.py) |
 | 🔴 **High** | Routers | Standardize endpoint signatures to use native Pydantic injection instead of `await request.body()`. | **Open** | [enrichment_router.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/enrichment_router.py), [batch_router.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/batch_router.py) |
 | 🟡 **Medium** | Dependency Injection | Centralize Redis client creation using configurable settings (`REDIS_HOST`, `REDIS_PORT`). | **Open** | [batch_router.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/batch_router.py), [celery_tasks.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/tasks/celery_tasks.py) |
 | 🟡 **Medium** | Architecture | Extract domain orchestration into a `services/` directory following DDD & SRP principles. | **Open** | `backend/app/services/` |
-| 🟢 **Low** | File Uploads | Replace in-memory `await file.read()` with chunked disk streaming in `upload_file`. | **Open** | [batch_router.py](file:///Users/dan/Code/Python/wormcat3-web/backend/app/routers/batch_router.py) |

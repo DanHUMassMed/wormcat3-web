@@ -3,6 +3,7 @@ import inspect
 import json
 import logging
 import os
+import shutil
 import uuid
 from typing import Optional
 
@@ -40,8 +41,8 @@ async def upload_file(file: UploadFile = File(...)):
     job_path.mkdir(parents=True, exist_ok=True)
     
     file_location = job_path / file.filename
-    with open(file_location, "wb") as f:
-        f.write(await file.read())
+    with open(file_location, "wb") as destination:
+        shutil.copyfileobj(file.file, destination)
 
     return {"job_id": job_id}
 

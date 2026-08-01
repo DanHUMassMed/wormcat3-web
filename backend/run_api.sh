@@ -8,17 +8,31 @@ ensure_uv_env
 
 export WORMCAT_OUT_PATH="${HOME}/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
 
-if [ -n "$1" ]; then
-    export WORMCAT_LOG_LEVEL=$1
-fi
-if [ "$2" == "CLEAR_LOGS" ]; then
-    rm backend.log 
-    rm backend_testing.log
-fi
-if [ "$3" == "ACTIVATE_DEBUG" ]; then
-    export ACTIVATE_DEBUG="TRUE"
-fi
+# Valid log levels: DEBUG, INFO, WARNING, ERROR
+export WORMCAT_LOG_LEVEL="DEBUG"
+export WORMCAT_LOG_PATH="${HOME}/var/log/wormcat3.log"
 
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -l|--log-level)
+            export WORMCAT_LOG_LEVEL="$2"
+            shift 2
+            ;;
+        -c|--clear-logs)
+            rm -f backend.log backend_testing.log
+            shift
+            ;;
+        -d|--debug|ACTIVATE_DEBUG)
+            export ACTIVATE_DEBUG="TRUE"
+            shift
+            ;;
+        *)
+            # Handle positional parameter or fallback (e.g. if passed without flags)
+            echo "Unknown option: $1" >&2
+            shift
+            ;;
+    esac
+done
 
 NUM_WORKERS=3
 TIMEOUT=120
@@ -27,16 +41,19 @@ PID_FILE="gunicorn.pid"
 PORT=8000
 
 #uvicorn app.main:app --reload
-gunicorn app.main:app \
---workers $NUM_WORKERS \
---graceful-timeout $RESTART_REQUEST_TIMEOUT \
---max-requests 1000 \
---max-requests-jitter 100 \
---worker-class uvicorn.workers.UvicornWorker \
---timeout $TIMEOUT \
---log-level=debug \
---bind=0.0.0.0:$PORT \
---pid=$PID_FILE
-
+if [[ "$ACTIVATE_DEBUG" == "TRUE" ]]; then
+    uvicorn app.main:app --reload --host 0.0.0.0 --port $PORT
+else
+    gunicorn app.main:app \
+    --workers $NUM_WORKERS \
+    --graceful-timeout $RESTART_REQUEST_TIMEOUT \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --timeout $TIMEOUT \
+    --log-level=debug \
+    --bind=0.0.0.0:$PORT \
+    --pid=$PID_FILE
+fi
 
 
