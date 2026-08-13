@@ -25,9 +25,6 @@ dependencies = [
 [tool.hatch.build.targets.wheel]
 packages = ["backend/app"]
 
-[tool.uv.sources]
-wormcat3 = { path = "../wormcat3", editable = true }
-
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["backend/test"]

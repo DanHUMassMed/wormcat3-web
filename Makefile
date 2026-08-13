@@ -24,7 +24,13 @@ ensure-uv:
 
 install: ensure-uv
 	$(UV) venv $(VENV) --python 3.13 --clear
-	$(UV) pip install --python $(VENV) -e . -e ../wormcat3
+	@if [ -d "../wormcat3" ]; then \
+		echo "Installing with local editable ../wormcat3..."; \
+		$(UV) pip install --python $(VENV) -e . -e ../wormcat3; \
+	else \
+		echo "Installing with published wormcat3 package..."; \
+		$(UV) pip install --python $(VENV) -e .; \
+	fi
 
 dev:
 	./sys_ctrl.sh start
