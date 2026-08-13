@@ -16,5 +16,5 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(buildPath, 'index.html'));
 });
 
-const PORT = process.env.REACT_APP_PORT || 9000;
+const PORT = process.env.PORT || 9001;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

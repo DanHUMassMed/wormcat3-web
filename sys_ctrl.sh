@@ -9,12 +9,8 @@ fi
 case "$action" in
     start|stop|status)
         (
-            cd ./backend/redis || exit
-            ./sys_redis.sh "$action"
-        )
-        (
             cd ./backend || exit
-            ./sys_celery.sh "$action"
+            ./sys_prefect.sh "$action"
             ./sys_api.sh "$action"
         )
         (

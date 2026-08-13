@@ -52,7 +52,7 @@ frontend/
 │   │   ├── WormCatEnrichmentReport.js # RGS interactive plot & table viewer
 │   │   ├── WormCatGSEAReport.js        # GSEA plot & metric report viewer
 │   │   ├── Header.js                  # Main navigation bar
-│   │   ├── Footer.js                  # Footer with version & links
+   │   ├── Footer.js                  # Footer with version & links
 │   │   └── Layout.js                  # Shared application shell layout
 │   ├── hooks/                 # Custom React hooks (e.g., usePageTracking)
 │   ├── test/                  # Frontend API integration tests (AVA)
@@ -78,7 +78,7 @@ Configuration files are maintained for different environments:
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `REACT_APP_API_URL` | Base URL for FastAPI backend endpoints | `http://localhost:8000` |
-| `REACT_APP_PORT` | Port for Express production static server | `9000` |
+| `PORT` | Port for development and Express production server | `9001` |
 
 ---
 
@@ -91,7 +91,7 @@ From the `frontend/` directory:
 ```bash
 npm start
 ```
-Starts the Webpack development server at `http://localhost:3000` with hot-reloading.
+Starts the Webpack development server with hot-reloading.
 
 ### Production Build & Local Serve
 
@@ -99,7 +99,7 @@ Starts the Webpack development server at `http://localhost:3000` with hot-reload
 npm run build
 node server.js
 ```
-Bundles optimized static assets into `build/` and starts the Express production server (`server.js`) on port `9000`.
+Bundles optimized static assets into `build/` and starts the Express production server (`server.js`) on port `9001`.
 
 ### Orchestrated Control (`run_react.sh`)
 

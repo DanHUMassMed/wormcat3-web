@@ -17,7 +17,7 @@ SYS_UTILS="$SCRIPT_DIR/../scripts/sys_utils.sh"
 # This function allows the script to encapsulate configuration cleanly
 #------------------------------------------------------------------------------
 set_config() {
-    PORT="9000"
+    PORT="9001"
     SEARCH_PROCESS="node server.js"
     PROCESS_NAME="ReactJS"
     PROCESS_EXE="${SCRIPT_DIR}/run_react.sh"

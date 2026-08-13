@@ -2,11 +2,12 @@
 
 [![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
+[![Prefect](https://img.shields.io/badge/Prefect-3.0+-0052CC.svg)](https://www.prefect.io/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB.svg)](https://reactjs.org/)
 [![Package Management](https://img.shields.io/badge/uv-managed-purple.svg)](https://github.com/astral-sh/uv)
 [![Build Tool](https://img.shields.io/badge/Makefile-driven-green.svg)](https://www.gnu.org/software/make/)
 
-> **WormCat 3 Web** is a high-performance web platform and REST API suite designed for *C. elegans* genomics research. It provides interactive, asynchronous gene set enrichment analysis (RGS), Gene Set Enrichment Analysis (GSEA), and batch analysis powered by the core `wormcat3` annotation engine.
+> **WormCat 3 Web** is a high-performance web platform and REST API suite designed for *C. elegans* genomics research. It provides interactive, asynchronous gene set enrichment analysis (RGS), Gene Set Enrichment Analysis (GSEA), and batch analysis powered by Prefect 3 workflows and the core `wormcat3` annotation engine.
 
 ---
 
@@ -14,9 +15,9 @@
 
 - **Single Gene Set Enrichment (RGS)**: Identify enriched functional categories, physiological processes, and cellular locations from gene lists.
 - **Ranked Gene Set Enrichment Analysis (GSEA)**: Compute enrichment scores across continuously ranked expression data.
-- **Batch Processing**: Run multi-sample analysis jobs in parallel via background worker queues.
+- **Batch Processing**: Run multi-sample analysis jobs in parallel via background Prefect flows.
 - **Interactive Visualizations**: View generated category plots (SVG/PNG) and export tab-separated enrichment metrics.
-- **Asynchronous Task Queue**: Powered by **Celery** and **Redis** for non-blocking analysis execution.
+- **Asynchronous Task Orchestration**: Powered by **Prefect 3** for non-blocking flow execution and real-time progress streaming.
 - **Modern Developer Tooling**: Built with **Python 3.13**, **FastAPI**, **React**, **Tailwind CSS**, and **`uv`**.
 
 ---
@@ -28,17 +29,18 @@ graph TD
     User["🌐 Browser / Web Client"]
     ReactApp["⚛️ React Frontend (Port 3000)"]
     FastAPI["⚡ FastAPI / Gunicorn (Port 8000)"]
-    Redis["🔴 Redis Broker"]
-    Celery["⚙️ Celery Worker Pool"]
+    EventBus["📡 Async Event Bus"]
+    Prefect["⚙️ Prefect 3 Engine & Flows"]
     WormCatCore["📦 wormcat3 Core Engine"]
     OutStorage["📁 Dynamic Output Storage (/dynamic/wormcat_out)"]
 
-    User -->|HTTP Requests| ReactApp
-    ReactApp -->|REST API Calls| FastAPI
-    FastAPI -->|Enqueue Analysis Job| Redis
-    Redis -->|Dispatch Task| Celery
-    Celery -->|Run Computations| WormCatCore
-    Celery -->|Write Plots & CSVs| OutStorage
+    User -->|HTTP Requests / WebSockets| ReactApp
+    ReactApp -->|REST API & WS Calls| FastAPI
+    FastAPI -->|Trigger Flow Execution| Prefect
+    Prefect -->|Publish Status Events| EventBus
+    EventBus -->|Stream WS Progress| FastAPI
+    Prefect -->|Run Computations| WormCatCore
+    Prefect -->|Write Plots & CSVs| OutStorage
     FastAPI -->|Fetch Status & Reports| OutStorage
 ```
 
@@ -47,7 +49,7 @@ graph TD
 | Layer | Technology | Description |
 | :--- | :--- | :--- |
 | **Backend API** | FastAPI, Gunicorn, Pydantic v2 | High-throughput async REST endpoints |
-| **Task Queue** | Celery, Redis | Distributed task processing for heavy statistical workloads |
+| **Task Queue** | Prefect 3 | Workflow orchestration & flow state management |
 | **Analysis Engine** | Python 3.13, `wormcat3`, plotnine, pandas | Core enrichment math & plot generation |
 | **Frontend** | React 18, Tailwind CSS | Responsive UI for submission & report rendering |
 | **Environment** | `uv`, Virtualenv (`.venv`) | Ultra-fast dependency resolution & hermetic environments |
@@ -62,13 +64,14 @@ wormcat3-web/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI application entrypoint & middleware
+│   │   ├── flows/               # Prefect workflow definitions (enrichment, batch, gsea)
+│   │   ├── tasks/               # Prefect atomic task functions
+│   │   ├── services/            # AsyncEventBus, ProgressPublisher & analysis services
 │   │   ├── routers/             # API routes (enrichment, batch, gsea)
-│   │   ├── schemas/             # Pydantic data validation schemas
-│   │   ├── tasks/               # Celery async tasks & email notification handlers
+│   │   ├── schemas/             # Pydantic data validation & progress models
 │   │   └── utils/               # File operations & system helpers
-│   ├── celery_worker.py         # Celery application initialization
 │   ├── run_api.sh               # FastAPI / Gunicorn launcher script
-│   ├── run_celery.sh            # Celery worker launcher script
+│   ├── run_prefect.sh           # Prefect service launcher script
 │   └── test/                    # Backend pytest suite
 ├── frontend/
 │   ├── src/
@@ -95,7 +98,6 @@ wormcat3-web/
 - **Python**: 3.13+
 - **Node.js**: 18+ (with `npm`)
 - **`uv`**: Installed (`brew install uv` or `curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- **Redis**: Installed locally or accessible via configuration
 
 ### 1. Installation
 
@@ -118,7 +120,7 @@ The project uses a unified `Makefile` to control development servers, test suite
 | Command | Description |
 | :--- | :--- |
 | `make install` | Create `.venv` and install Python dependencies via `uv` |
-| `make dev` | Launch Redis, Celery, FastAPI, and ReactJS services concurrently |
+| `make dev` | Launch Prefect, FastAPI, and ReactJS services concurrently |
 | `make status` | Display process IDs and health status of all running services |
 | `make stop` | Stop all background processes gracefully |
 | `make test` | Execute the backend `pytest` test suite |
@@ -138,9 +140,8 @@ make dev
 ```
 
 This launches:
-- **Redis Server**: `localhost:6379`
 - **FastAPI Backend**: `http://localhost:8000` (Interactive API docs at `http://localhost:8000/docs`)
-- **Celery Worker**: Background job executor
+- **Prefect Service**: `http://localhost:4200`
 - **React Frontend**: `http://localhost:3000`
 
 ### Performing an Enrichment Analysis
@@ -150,8 +151,8 @@ This launches:
    - **Enrichment (RGS)**: Input a set of WormBase Gene IDs (e.g., `WBGene00016360`).
    - **GSEA**: Upload a ranked list of genes with numeric metrics.
    - **Batch**: Upload a multi-sample CSV file.
-3. Submit the job. The application generates a unique `run_id` and queues the execution.
-4. View real-time progress and download generated category charts (SVG) and summary tables (CSV/Excel).
+3. Submit the job. The application generates a unique `run_id` and queues flow execution.
+4. View real-time progress streamed over WebSockets and download generated category charts (SVG) and summary tables (CSV/Excel).
 
 ---
 

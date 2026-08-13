@@ -5,12 +5,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import debugpy
 from app.routers import enrichment_router, batch_router, gsea_router
-from app.utils.logger import get_logger, configure_logging
+from app.utils.logger import configure_logging
 
 
 
 load_dotenv() 
-react_app_url = os.getenv("REACT_APP_URL", "http://localhost:9000")
+react_app_url = os.getenv("REACT_APP_URL", "http://localhost:9001")
 
 logger =configure_logging()
 

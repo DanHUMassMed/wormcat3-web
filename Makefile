@@ -7,7 +7,7 @@ UV := uv
 help:
 	@echo "Available commands:"
 	@echo "  make install  - Create .venv and install all dependencies via uv"
-	@echo "  make dev      - Start local development services (Redis, Celery, API, React)"
+	@echo "  make dev      - Start local development services (Prefect, API, React)"
 	@echo "  make stop     - Stop all running services"
 	@echo "  make status   - Check status of running services"
 	@echo "  make test     - Run pytest test suite using uv"

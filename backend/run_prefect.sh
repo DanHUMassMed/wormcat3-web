@@ -7,5 +7,5 @@ ensure_uv_env
 
 export WORMCAT_OUT_PATH="${HOME}/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
 
-celery -A celery_worker.celery worker --loglevel=info --concurrency=4
-#celery -A celery_worker.celery worker --loglevel=info
+# Start Prefect local ephemeral server or worker
+prefect server start --host 127.0.0.1 --port 4200
