@@ -1,5 +1,5 @@
 import os
-os.environ["WORMCAT_OUT_PATH"] = "/Users/dan/Code/Python/wormcat3-web/dynamic/wormcat_out"
+os.environ.setdefault("WORMCAT_OUT_PATH", "dynamic/wormcat_out")
 
 from fastapi.testclient import TestClient
 from app.main import app

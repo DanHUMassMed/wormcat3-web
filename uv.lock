@@ -2985,7 +2985,7 @@ wheels = [
 [[package]]
 name = "wormcat3"
 version = "0.1.14"
-source = { editable = "../wormcat3" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "build" },
     { name = "gseapy" },
@@ -2999,29 +2999,9 @@ dependencies = [
     { name = "statsmodels" },
     { name = "xlsxwriter" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "build" },
-    { name = "gseapy", specifier = "==1.1.8" },
-    { name = "ipykernel" },
-    { name = "matplotlib", specifier = "==3.10.8" },
-    { name = "openpyxl", specifier = "==3.1.5" },
-    { name = "pandas", specifier = "==2.2.3" },
-    { name = "pip" },
-    { name = "plotnine", specifier = "==0.14.5" },
-    { name = "scipy", specifier = "==1.16.3" },
-    { name = "statsmodels", specifier = "==0.14.4" },
-    { name = "xlsxwriter", specifier = "==3.2.2" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "build", specifier = ">=1.2.0" },
-    { name = "mypy", specifier = ">=1.10.0" },
-    { name = "pytest", specifier = ">=8.0.0" },
-    { name = "ruff", specifier = ">=0.5.0" },
-    { name = "twine", specifier = ">=5.0.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/f2/0e/2443bd6e356262ab5f2d38c9e2c46fbfb7782bbb50a04a34929d79bf8b8b/wormcat3-0.1.14.tar.gz", hash = "sha256:8ad5e86b4b10f95e7579ce28e09e6e90ec5925223172e76acd7bf3b76bb3d78f", size = 3073996, upload-time = "2026-08-01T18:22:10.478Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/3b/a6c7aff3bff79ec0fb058084eab7d018e4ee6fca2125ed5b083156bb791b/wormcat3-0.1.14-py3-none-any.whl", hash = "sha256:7912e9dbb5f71629215dc0483e67ddbe5cd2b1f36c53d276cfa30fef7ac76421", size = 3174348, upload-time = "2026-08-01T18:22:06.822Z" },
 ]
 
 [[package]]
@@ -3056,7 +3036,7 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "python-multipart", specifier = ">=0.0.6" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.20.0" },
-    { name = "wormcat3", editable = "../wormcat3" },
+    { name = "wormcat3" },
 ]
 
 [[package]]

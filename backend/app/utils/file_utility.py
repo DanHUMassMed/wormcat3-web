@@ -1,10 +1,11 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from dotenv import load_dotenv
 
-WORMCAT_OUT_PATH = os.environ.get("WORMCAT_OUT_PATH")
-if not WORMCAT_OUT_PATH:
-    raise EnvironmentError("WORMCAT_OUT_PATH environment variable is not set.")
+load_dotenv()
+
+WORMCAT_OUT_PATH = os.environ.get("WORMCAT_OUT_PATH", "../dynamic/wormcat_out")
 
 def get_upload_dir_path():
     return get_full_dir_path("../uploads")

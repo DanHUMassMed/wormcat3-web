@@ -30,7 +30,7 @@ export const useWormCatEnrichmentProcessor = (fields) => {
     
         try {
           const response_data = await analyze_and_visualize_enrichment(enrichmentRequest);
-          
+          console.log("response_data", response_data);
           if (response_data?.run_id) {
             navigate(`/report/${response_data.run_id}`);
           } else if (response_data.status_code != 200){

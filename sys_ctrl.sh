@@ -1,6 +1,7 @@
 #!/bin/bash
 
 action=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+mode=$(echo "$2" | tr '[:upper:]' '[:lower:]')
 
 if [ -z "$action" ]; then
     action="status"
@@ -15,12 +16,12 @@ case "$action" in
         )
         (
             cd ./frontend || exit
-            ./sys_react.sh "$action"
+            ./sys_react.sh "$action" "$mode"
         )
         ;;
     *)
         echo "Invalid action: $action"
-        echo "Usage: manage {start|stop|status}"
+        echo "Usage: manage {start|stop|status} [dev|prod]"
         return 1
         ;;
 esac

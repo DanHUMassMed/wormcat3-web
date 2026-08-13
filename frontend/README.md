@@ -77,7 +77,9 @@ Configuration files are maintained for different environments:
 
 | Variable | Description | Default |
 | :--- | :--- | :--- |
-| `REACT_APP_API_URL` | Base URL for FastAPI backend endpoints | `http://localhost:8000` |
+| `REACT_APP_FASTAPI_BASE_URL` | Base URL for FastAPI backend REST endpoints | `http://localhost:8000` |
+| `REACT_APP_FASTAPI_BASE_WS` | Base WebSocket URL for real-time progress streaming | `ws://localhost:8000` |
+| `REACT_APP_FASTAPI_TIMEOUT_MS` | Axios REST client request timeout in milliseconds | `45000` |
 | `PORT` | Port for development and Express production server | `9001` |
 
 ---

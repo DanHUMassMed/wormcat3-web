@@ -16,15 +16,24 @@ SYS_UTILS="$SCRIPT_DIR/../scripts/sys_utils.sh"
 #
 # This function allows the script to encapsulate configuration cleanly
 #------------------------------------------------------------------------------
+action="$1"
+mode="$2"
+
 set_config() {
     PORT="9001"
-    SEARCH_PROCESS="node server.js"
-    PROCESS_NAME="ReactJS"
-    PROCESS_EXE="${SCRIPT_DIR}/run_react.sh"
+    if [ "$mode" == "dev" ]; then
+        SEARCH_PROCESS="craco"
+        PROCESS_NAME="ReactJS (Dev)"
+        PROCESS_EXE="${SCRIPT_DIR}/run_react.sh dev"
+    else
+        SEARCH_PROCESS="node server.js"
+        PROCESS_NAME="ReactJS (Prod)"
+        PROCESS_EXE="${SCRIPT_DIR}/run_react.sh prod"
+    fi
     LOG_PATH="$HOME/var/log"
     LOG_FILE="$LOG_PATH/react.log"
 }
 
 set_config
 source "$SYS_UTILS"
-handle_action "$1"
+handle_action "$action"

@@ -6,8 +6,6 @@ source "$RUN_UTILS"
 clear
 ensure_uv_env
 
-export WORMCAT_OUT_PATH="${HOME}/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
-
 # Valid log levels: DEBUG, INFO, WARNING, ERROR
 export WORMCAT_LOG_LEVEL="DEBUG"
 export WORMCAT_LOG_PATH="${HOME}/var/log/wormcat3.log"
