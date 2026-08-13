@@ -1,10 +1,12 @@
-.PHONY: help install build dev start-dev start-prod stop status test lint clean ensure-uv
+.PHONY: help install build dev start-dev start-prod stop status test lint clean ensure-uv ensure-node
 
 export PATH := $(HOME)/.local/bin:$(HOME)/.cargo/bin:$(PATH)
 
 VENV := .venv
 PYTHON := $(VENV)/bin/python
 UV := $(shell command -v uv 2>/dev/null || echo "$(HOME)/.local/bin/uv")
+NODE := $(shell command -v node 2>/dev/null)
+NPM := $(shell command -v npm 2>/dev/null)
 
 help:
 	@echo "Available commands:"
@@ -18,13 +20,34 @@ help:
 	@echo "  make lint       - Run static analysis and code checks"
 	@echo "  make clean      - Remove build artifacts and temporary files"
 
+ensure-node:
+	@if [ -z "$(NODE)" ] || [ -z "$(NPM)" ]; then \
+		echo "================================================================="; \
+		echo " [ERROR] Node.js and npm are required to build frontend dependencies."; \
+		echo ""; \
+		echo " Installation instructions for Ubuntu Linux:"; \
+		echo "   Option 1 (NodeSource - Recommended for Node 20 LTS):"; \
+		echo "     sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg"; \
+		echo "     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"; \
+		echo "     sudo apt-get install -y nodejs"; \
+		echo ""; \
+		echo "   Option 2 (Ubuntu APT):"; \
+		echo "     sudo apt-get update && sudo apt-get install -y nodejs npm"; \
+		echo ""; \
+		echo "   Option 3 (NVM - Node Version Manager):"; \
+		echo "     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash"; \
+		echo "     source ~/.bashrc && nvm install --lts"; \
+		echo "================================================================="; \
+		exit 1; \
+	fi
+
 ensure-uv:
 	@if ! command -v uv >/dev/null 2>&1 && [ ! -f $(UV) ]; then \
 		echo "uv not found. Installing uv..."; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh || pip install uv; \
 	fi
 
-install: ensure-uv
+install: ensure-node ensure-uv
 	$(UV) venv $(VENV) --python 3.13 --clear
 	@if [ -d "../wormcat3" ]; then \
 		echo "Installing with local editable ../wormcat3..."; \
@@ -36,7 +59,7 @@ install: ensure-uv
 	@echo "Installing frontend node dependencies..."
 	npm --prefix frontend install
 
-build:
+build: ensure-node
 	@echo "Building frontend production static assets..."
 	npm --prefix frontend run build
 
