@@ -11,7 +11,8 @@ case "$action" in
     start|stop|status)
         (
             cd ./backend || exit
-            ./sys_prefect.sh "$action"
+            ./redis/sys_redis.sh "$action"
+            ./sys_celery.sh "$action"
             ./sys_api.sh "$action"
         )
         (

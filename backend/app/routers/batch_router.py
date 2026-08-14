@@ -7,13 +7,25 @@ import shutil
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    File,
+    HTTPException,
+    Request,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from pydantic import BaseModel, ValidationError
 
-from app.flows.batch_flow import run_and_email_flow
-from app.flows.enrichment_flow import run_and_wait_flow
+from app.core.redis import (
+    get_async_redis_client,
+    get_task_event_channel,
+)
 from app.schemas.enrichment_models import EnrichmentRequest, EnrichmentResponse
-from app.services.progress import progress_bus
+from app.schemas.progress_models import ProgressEvent, ProgressState, TaskStatusResponse
+from app.services.progress_publisher import RedisProgressPublisher
+from app.tasks.celery_tasks import run_and_email_task, run_and_wait_task
 from app.utils.file_utility import get_upload_dir_path, log_users
 
 logger = logging.getLogger()
@@ -75,16 +87,15 @@ async def run_and_email(request: Request):
 
     try:
         task_id = str(uuid.uuid4())
-        asyncio.create_task(
-            asyncio.to_thread(
-                run_and_email_flow,
-                enrichment_request=enrichment_request.model_dump(),
-                task_id=task_id,
-            )
+        run_and_email_task.apply_async(
+            kwargs={
+                "enrichment_request": enrichment_request.model_dump(),
+                "task_id": task_id,
+            }
         )
         return EnrichmentResponse(run_id=task_id)
     except Exception as e:
-        logger.error("run_and_email failed: %s", str(e))
+        logger.error("run_and_email dispatch failed: %s", str(e))
         return EnrichmentResponse(
             status_code="500",
             message=f"Dispatch error: {str(e)}",
@@ -118,30 +129,84 @@ async def run_and_wait(request: Request):
 
     try:
         task_id = str(uuid.uuid4())
-        asyncio.create_task(
-            asyncio.to_thread(
-                run_and_wait_flow,
-                enrichment_request=enrichment_request.model_dump(),
-                task_id=task_id,
-            )
+        # Record initial PENDING state in Redis
+        initial_event = ProgressEvent(
+            task_id=task_id,
+            state=ProgressState.PENDING,
+            progress=0,
+            message="Task queued",
+        )
+        await RedisProgressPublisher.publish_async(initial_event)
+
+        run_and_wait_task.apply_async(
+            kwargs={
+                "enrichment_request": enrichment_request.model_dump(),
+                "task_id": task_id,
+            }
         )
         return EnrichmentResponse(run_id=task_id)
     except Exception as e:
-        logger.error("run_and_wait failed: %s", str(e))
+        logger.error("run_and_wait dispatch failed: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/status/{task_id}", response_model=TaskStatusResponse)
+async def get_task_status(task_id: str):
+    state = await RedisProgressPublisher.get_state_async(task_id)
+    if state is None:
+        raise HTTPException(status_code=404, detail="Task not found or status expired")
+    return TaskStatusResponse(
+        task_id=state.task_id,
+        state=state.state,
+        progress=state.progress,
+        message=state.message,
+        result_url=state.result_url,
+        report_id=state.report_id,
+        download_url=state.download_url,
+        error_details=state.error_details,
+        timestamp=state.timestamp,
+    )
 
 
 @router.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
     await websocket.accept()
+    redis_client = get_async_redis_client()
+    channel = get_task_event_channel(task_id)
+    pubsub = redis_client.pubsub()
+
     try:
-        async for event in progress_bus.subscribe(task_id):
-            await websocket.send_json(event.to_ws_message())
+        # 1. Replay cached state if already present (handles reconnects and fast completions)
+        current_state = await RedisProgressPublisher.get_state_async(task_id, async_client=redis_client)
+        if current_state:
+            await websocket.send_json(current_state.to_ws_message())
+            if current_state.state in (ProgressState.COMPLETED, ProgressState.FAILED):
+                await websocket.close()
+                return
+
+        # 2. Subscribe to live Redis Pub/Sub channel
+        await pubsub.subscribe(channel)
+
+        while True:
+            # Non-blocking listen on async Redis pubsub
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            if message and message.get("data"):
+                data = json.loads(message["data"])
+                await websocket.send_json(data)
+                if data.get("state") in (ProgressState.COMPLETED.value, ProgressState.FAILED.value):
+                    break
+            await asyncio.sleep(0.05)
+
     except WebSocketDisconnect:
-        logger.debug("WebSocket disconnected for task %s", task_id)
+        logger.debug("WebSocket disconnected by client for task %s", task_id)
     except Exception as e:
         logger.error("WebSocket error for task %s: %s", task_id, e)
     finally:
+        try:
+            await pubsub.unsubscribe(channel)
+            await pubsub.close()
+        except Exception:
+            pass
         try:
             await websocket.close()
         except Exception:

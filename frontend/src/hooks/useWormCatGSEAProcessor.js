@@ -23,7 +23,12 @@ export const useWormCatGSEAProcessor = () => {
     const [taskId, setTaskId] = useState(null);
     const [taskStatus, setTaskStatus] = useState('Idle');
     const [isRunning, setIsRunning] = useState(false);
-    const { progress, progressMessage, resultUrl } = useTaskWebSocket(taskId, setTaskStatus, setIsRunning, setErrorMessage);
+    const { progress, progressMessage, resultUrl, reportId, downloadUrl } = useTaskWebSocket(
+        taskId,
+        setTaskStatus,
+        setIsRunning,
+        setErrorMessage
+    );
     
     // Form validation logic
     const validateFields = () => {
@@ -201,6 +206,8 @@ export const useWormCatGSEAProcessor = () => {
     isRunning,
     progress, 
     progressMessage, 
-    resultUrl
+    resultUrl,
+    reportId,
+    downloadUrl
   };
 };

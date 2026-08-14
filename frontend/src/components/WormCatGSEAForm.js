@@ -34,7 +34,8 @@ export default function WormCatGSEAForm() {
       isRunning,
       progress, 
       progressMessage, 
-      resultUrl
+      resultUrl,
+      reportId
     } = useWormCatGSEAProcessor(); // false indicates this is not a batch form
   
    // Form is disabled when loading, or if there is major error message
@@ -52,13 +53,15 @@ export default function WormCatGSEAForm() {
     animate: { width: `${progress}%` },
   };
 
-      // Navigate when resultUrl is set
+      // Navigate when reportId or resultUrl is set
       useEffect(() => {
-        if (resultUrl) {
-            const taskId = resultUrl.slice(0, -4);
-            navigate(`/gsea_report/${taskId}`);
-            }
-        }, [resultUrl, navigate]);
+        if (reportId) {
+          navigate(`/gsea_report/${reportId}`);
+        } else if (resultUrl) {
+          const fallbackId = resultUrl.replace(/\.zip$/i, '');
+          navigate(`/gsea_report/${fallbackId}`);
+        }
+      }, [reportId, resultUrl, navigate]);
 
         return (
       <div className="max-w-3xl mx-auto p-4 md:p-8">

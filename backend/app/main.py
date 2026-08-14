@@ -1,18 +1,18 @@
+from contextlib import asynccontextmanager
 import os
+import debugpy
 from dotenv import load_dotenv
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import debugpy
-from app.routers import enrichment_router, batch_router, gsea_router
+
+from app.core.redis import close_async_redis_pool
+from app.routers import batch_router, enrichment_router, gsea_router
 from app.utils.logger import configure_logging
 
-
-
-load_dotenv() 
+load_dotenv()
 react_app_url = os.getenv("REACT_APP_URL", "http://localhost:9001")
 
-logger =configure_logging()
+logger = configure_logging()
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "None")
 logger.info(f"ACTIVATE_DEBUG:{ACTIVATE_DEBUG}")
@@ -25,15 +25,23 @@ logger.info(f"WORMCAT_LOG_PATH:{WORMCAT_LOG_PATH}")
 
 ACTIVATE_DEBUG = os.getenv("ACTIVATE_DEBUG", "FALSE")
 logger.info(f"ACTIVATE_DEBUG:{ACTIVATE_DEBUG}")
-if ACTIVATE_DEBUG=="TRUE":
+if ACTIVATE_DEBUG == "TRUE":
     print("Waiting for debugger to attach...")
     debugpy.listen(("0.0.0.0", 58979))
     logger.info("Waiting for debugger to attach...")
 
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting WormCat3 Web API...")
+    yield
+    logger.info("Shutting down WormCat3 Web API...")
+    await close_async_redis_pool()
+
+
 # localhost:8000
 # Swagger http://127.0.0.1:8000/docs#/
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 
 # CORS middleware configuration

@@ -1,4 +1,3 @@
-import asyncio
 import inspect
 import json
 import logging
@@ -8,8 +7,10 @@ import uuid
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
 
-from app.flows.gsea_flow import run_gsea_flow
 from app.schemas.gsea_models import GSEARequest, GSEAResponse
+from app.schemas.progress_models import ProgressEvent, ProgressState
+from app.services.progress_publisher import RedisProgressPublisher
+from app.tasks.celery_tasks import run_gsea_and_wait_task
 from app.utils.file_utility import log_users
 
 logger = logging.getLogger()
@@ -44,14 +45,22 @@ async def perform_gsea_analysis(request: Request):
 
     try:
         task_id = str(uuid.uuid4())
-        asyncio.create_task(
-            asyncio.to_thread(
-                run_gsea_flow,
-                gsea_request=gsea_request.model_dump(),
-                task_id=task_id,
-            )
+        # Record initial PENDING state in Redis
+        initial_event = ProgressEvent(
+            task_id=task_id,
+            state=ProgressState.PENDING,
+            progress=0,
+            message="GSEA Task queued",
+        )
+        await RedisProgressPublisher.publish_async(initial_event)
+
+        run_gsea_and_wait_task.apply_async(
+            kwargs={
+                "gsea_request": gsea_request.model_dump(),
+                "task_id": task_id,
+            }
         )
         return GSEAResponse(run_id=task_id)
     except Exception as e:
-        logger.error("perform_gsea_analysis failed: %s", str(e))
+        logger.error("perform_gsea_analysis dispatch failed: %s", str(e))
         raise HTTPException(status_code=500, detail=str(e))
