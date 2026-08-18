@@ -1,5 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOG_DIR="$PROJECT_ROOT/logs"
 RUN_UTILS="$SCRIPT_DIR/../scripts/run_utils.sh"
 source "$RUN_UTILS"
 
@@ -8,7 +10,7 @@ ensure_uv_env
 
 # Valid log levels: DEBUG, INFO, WARNING, ERROR
 export WORMCAT_LOG_LEVEL="DEBUG"
-export WORMCAT_LOG_PATH="${HOME}/var/log/wormcat3.log"
+export WORMCAT_LOG_PATH="$LOG_DIR/wormcat3.log"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in

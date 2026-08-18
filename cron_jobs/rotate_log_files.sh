@@ -1,6 +1,9 @@
 #!/bin/bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOG_DIR="$PROJECT_ROOT/logs"
 
-log_dir="$HOME/var/log"
+log_dir="$LOG_DIR"
 
 # For every *.log file in the log directory
 for log_file in "$log_dir"/*.log; do

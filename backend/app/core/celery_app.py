@@ -2,7 +2,9 @@ import logging
 from celery import Celery
 from app.core.config import settings
 
+
 logger = logging.getLogger("wormcat3.core.celery")
+
 
 celery_app = Celery(
     "wormcat3",
@@ -11,7 +13,17 @@ celery_app = Celery(
     include=["app.tasks.celery_tasks"],
 )
 
+
 celery_app.conf.update(
+    task_default_queue="wormcat3_web",
+
+    broker_transport_options={
+        "global_keyprefix": "wormcat3_web:",
+    },
+    result_backend_transport_options={
+        "global_keyprefix": "wormcat3_web:",
+    },
+
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],

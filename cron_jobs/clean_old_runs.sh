@@ -6,12 +6,17 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOG_DIR="$PROJECT_ROOT/logs"
+
 # Configuration
-TARGET_DIR="$HOME/Code/Python/wormcat3-web/frontend/build/dynamic/wormcat_out"
+TARGET_DIR="$PROJECT_ROOT/frontend/build/dynamic/wormcat_out"
 DAYS_OLD=7
 
 # Logging
-LOG_FILE="/tmp/cleanup_wormcat_out.log"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/cleanup_wormcat_out.log"
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
 echo "[$TIMESTAMP] Cleanup started for $TARGET_DIR (files/dirs older than $DAYS_OLD days)" >> "$LOG_FILE"
 

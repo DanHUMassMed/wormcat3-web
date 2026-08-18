@@ -6,6 +6,7 @@ __pycache__/
 **/.DS_Store
 ~*
 *.log
+logs/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -27,6 +28,7 @@ notebooks/data/
 app_logs/
 
 gunicorn.pid
+dump.rdb
 
 # Virtual Environments
 .venv/

@@ -26,15 +26,6 @@ ensure-node:
 		echo " [ERROR] Node.js and npm are required to build frontend dependencies."; \
 		echo ""; \
 		echo " Installation instructions for Ubuntu Linux:"; \
-		echo "   Option 1 (NodeSource - Recommended for Node 20 LTS):"; \
-		echo "     sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg"; \
-		echo "     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -"; \
-		echo "     sudo apt-get install -y nodejs"; \
-		echo ""; \
-		echo "   Option 2 (Ubuntu APT):"; \
-		echo "     sudo apt-get update && sudo apt-get install -y nodejs npm"; \
-		echo ""; \
-		echo "   Option 3 (NVM - Node Version Manager):"; \
 		echo "     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash"; \
 		echo "     source ~/.bashrc && nvm install --lts"; \
 		echo "================================================================="; \
