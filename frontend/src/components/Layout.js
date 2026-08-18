@@ -1,8 +1,8 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
-import Usage_RGS from "./Useage_RGS";
-import Usage_BatchRGS from "./Useage_BatchRGS";
-import Usage_GSEA from "./Useage_GSEA";
+import UsageRGS from "./Useage_RGS";
+import UsageBatchRGS from "./Useage_BatchRGS";
+import UsageGSEA from "./Useage_GSEA";
 import Citation from "./Citation";
 import Footer from "./Footer";
 
@@ -20,19 +20,19 @@ const Layout = () => {
             </main>
             {isRGSForm && (
                 <>
-                    <Usage_RGS />
+                    <UsageRGS />
                     <Citation />
                 </>
             )}
             {isBatchForm && (
                 <>
-                    <Usage_BatchRGS />
+                    <UsageBatchRGS />
                     <Citation />
                 </>
             )}
             {isGSEAForm && (
                 <>
-                    <Usage_GSEA />
+                    <UsageGSEA />
                     <Citation />
                 </>
             )}

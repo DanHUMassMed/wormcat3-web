@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Settings, FileText, UploadCloud, FileSpreadsheet, AlertTriangle } from 'lucide-react';
 
-const Usage_GSEA = () => {
+const UsageGSEA = () => {
   return (
     <div id="usage-gsea" className="bg-gray-50 border-t border-gray-200 py-16">
       <div className="max-w-4xl mx-auto px-6">
@@ -109,4 +109,4 @@ const Usage_GSEA = () => {
   );
 };
 
-export default Usage_GSEA;
+export default UsageGSEA;

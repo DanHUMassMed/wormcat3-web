@@ -1,4 +1,4 @@
-import axios, {isCancel, AxiosError} from 'axios';
+import axios from 'axios';
 
 const BASE_URL = process.env.REACT_APP_FASTAPI_BASE_URL;
 const API_TIMEOUT_MS = process.env.REACT_APP_FASTAPI_TIMEOUT_MS;

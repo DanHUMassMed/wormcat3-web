@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { run_and_email, run_and_wait, upload_file } from "../api/enrichmentAPI";
 import { useTaskWebSocket } from "./useTaskWebSocket";
 

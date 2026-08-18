@@ -1,7 +1,7 @@
 import React from 'react';
-import { Info, FileText, UploadCloud, Settings, Mail, FileSpreadsheet, AlertTriangle  } from 'lucide-react';
+import { FileText, UploadCloud, Settings, Mail, FileSpreadsheet, AlertTriangle } from 'lucide-react';
 
-const Usage_RGS = () => {
+const UsageRGS = () => {
   return (
     <div id="usage" className="bg-gray-50 border-t border-gray-200 py-16">
       <div className="max-w-4xl mx-auto px-6">
@@ -118,4 +118,4 @@ const Usage_RGS = () => {
   );
 };
 
-export default Usage_RGS;
+export default UsageRGS;

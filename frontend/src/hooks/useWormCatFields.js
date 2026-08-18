@@ -74,7 +74,7 @@ export const useWormCatFields = (requiredGeneSet = false) => {
     };
 
     // Utility function to check ASCII characters
-    const isASCII = (text) => /^[\x09\x0A\x0D\x20-\x7E]*$/.test(text);
+    const isASCII = (text) => /^[\t\r\n -~]*$/.test(text);
     const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     
     const isValidGeneSet = (text) => {

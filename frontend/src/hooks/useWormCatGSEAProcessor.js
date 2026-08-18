@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { useFieldValidation } from "./useFieldValidation";
-import { upload_file } from "../api/enrichmentAPI";
 import { ANNOTATION_OPTIONS } from "../components/constants";
-import { useNavigate } from "react-router-dom";
-import { perform_gsea_analysis } from "../api/enrichmentAPI";
+import { perform_gsea_analysis, upload_file } from "../api/enrichmentAPI";
 import { useTaskWebSocket } from "./useTaskWebSocket";
 
 
 export const useWormCatGSEAProcessor = () => {
-    const navigate = useNavigate();
     const validation = useFieldValidation();
 
     // Basic form state
@@ -70,7 +67,7 @@ export const useWormCatGSEAProcessor = () => {
     };
 
     // Utility function to check ASCII characters
-    const isASCII = (text) => /^[\x09\x0A\x0D\x20-\x7E]*$/.test(text);
+    const isASCII = (text) => /^[\t\r\n -~]*$/.test(text);
     const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const hasRequiredColumns = (file) => {
